@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>Demo</title>
+  </head>
+  
+  <body>
+    <div id="app">
+      <ul>
+        <li v-for="[id, post] in posts" :key="id">
+          <a :href="`/post/${id}`">[[ post.article_title ]]（[[ count(post.messages) ]] 人參與）</a>
+        </li>
+      </ul>
+      <!-- [[ plot ]] -->
+    </div>
+  </body>
+
+  <!-- import Vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+  <script>
+    const posts = {{ posts|tojson }}
+
+    var app = new Vue({
+      el: '#app',
+      delimiters: ['[[', ']]'],
+      data() {
+        return {
+          posts: Object.entries(posts),
+        }
+      },
+      methods: {
+        count(messages) {
+          set = new Set(messages.map(msg => msg.push_userid))
+          return set.size
+        },
+      },
+    });
+  </script>
+</html>
