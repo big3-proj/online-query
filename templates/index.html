@@ -2,16 +2,25 @@
 
 <head>
   <title>Demo</title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='tailwind.css') }}">
 </head>
 
 <body>
-  <div id="plot">
-  </div>
   <div id="app">
-    selected users: [[ selectedUser.length ]]
-    <ul>
-      <li v-for="[x, y, label, id] in selectedUser" :key="id">[[ id ]]</li>
-    </ul>
+    <div class="container mx-auto my-4">
+      <div class="flex flex-row flex-nowrap space-x-8" :style="{ height: height }">
+        <div id="plot"></div>
+        <div class="flex-auto px-1 w-full h-full overflow-hidden border-solid border border-light-blue-500">
+          <div>selected users: [[ selectedUsers.length ]]</div>
+          <hr class="mb-1">
+          <div class="overflow-auto h-full">
+            <ul class="list-disc list-inside">
+              <li v-for="[x, y, label, id] in sortedSelectedUsers" :key="id">[[ id ]]</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 
@@ -26,13 +35,18 @@
     el: '#app',
     delimiters: ['[[', ']]'],
     data: {
-      selectedUser: [],
+      selectedUsers: [],
+      width: 1100,
+      height: 700,
     },
-
+    computed: {
+      sortedSelectedUsers() {
+        return this.selectedUsers.sort((a, b) => a[3].toUpperCase() <= b[3].toUpperCase() ? -1 : 1)
+      }
+    },
     mounted() {
       this.draw()
     },
-
     methods: {
       draw() {
         const vue = this
@@ -40,9 +54,9 @@
         const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
         const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
         const margin = { top: 20, right: 20, bottom: 20, left: 20 }
-        const fullWidth = 1200
+        const fullWidth = this.width
         const width = fullWidth - margin.left - margin.right
-        const fullHeight = 700
+        const fullHeight = this.height
         const height = fullHeight - margin.top - margin.bottom
 
         const x = d3.scaleLinear()
@@ -90,7 +104,7 @@
           const selected = dots.filter(d => isBrushed(extent, x(d[0]), y(d[1])))
           dots.classed("selected", false)
           selected.classed("selected", true)
-          vue.selectedUser = selected.nodes().map(node => node.__data__)
+          vue.selectedUsers = selected.nodes().map(node => node.__data__)
         }
 
         // A function that return TRUE or FALSE according if a dot is in the selection or not
@@ -103,7 +117,7 @@
         }
 
         // Add legend
-        const legendX = 1080, legendY = 30
+        const legendX = fullWidth - 120, legendY = 30
         const labels = ['midnight', 'morning', 'afternoon', 'evening']
         labels.forEach((l, idx) => {
           svg.append("circle")
@@ -123,6 +137,7 @@
     },
   });
 </script>
+
 <style>
 .selected {
   opacity: 1 !important;
