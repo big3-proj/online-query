@@ -51,9 +51,9 @@
           const data = this.plot
           const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
           const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
-          const fakeBoobs = 50
-          const width = (maxX - minX) * fakeBoobs
-          const height = (maxY - minY) * fakeBoobs
+          const size = 50
+          const width = (maxX - minX) * size
+          const height = (maxY - minY) * size
           const padding = 20
 
           const svg = d3.select("#plot")
@@ -67,9 +67,9 @@
           svg.selectAll("circle")
             .data(data).enter()
             .append("circle")
-            .attr("cx", d => padding + (d[0] - minX) * fakeBoobs)
-            .attr("cy", d => padding + (d[1] - minY) * fakeBoobs)
-            .attr("r", 1 * fakeBoobs/10)
+            .attr("cx", d => padding + (d[0] - minX) * size)
+            .attr("cy", d => padding + (d[1] - minY) * size)
+            .attr("r", 1 * size/10)
         },
       },
     });
