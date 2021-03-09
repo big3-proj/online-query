@@ -5,8 +5,13 @@
 </head>
 
 <body>
+  <div id="plot">
+  </div>
   <div id="app">
-    <!-- [[ plot ]] -->
+    selected users: [[ selectedUser.length ]]
+    <ul>
+      <li v-for="[x, y, label, id] in selectedUser" :key="id">[[ id ]]</li>
+    </ul>
   </div>
 </body>
 
@@ -15,13 +20,12 @@
 <!-- import d3.js -->
 <script src="https://d3js.org/d3.v4.js"></script>
 <script>
-  const plot = {{ plot| tojson }}
+  const plot = {{ plot|tojson }}
 
   var app = new Vue({
     el: '#app',
     delimiters: ['[[', ']]'],
     data: {
-      plot,
       selectedUser: [],
     },
 
@@ -32,30 +36,33 @@
     methods: {
       draw() {
         const vue = this
-        const data = this.plot
+        const data = plot
         const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
         const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
-        const margin = 20
-        const width = 1200 - margin * 2
-        const height = 700 - margin * 2
-        var x = d3.scaleLinear()
+        const margin = { top: 20, right: 20, bottom: 20, left: 20 }
+        const fullWidth = 1200
+        const width = fullWidth - margin.left - margin.right
+        const fullHeight = 700
+        const height = fullHeight - margin.top - margin.bottom
+
+        const x = d3.scaleLinear()
           .domain([minX, maxX])
           .range([0, width])
-        var y = d3.scaleLinear()
+        const y = d3.scaleLinear()
           .domain([minY, maxY])
           .range([height, 0])
-        var color = d3.scaleOrdinal()
+        const color = d3.scaleOrdinal()
           .domain(["midnight", "morning", "afternoon", "evening"])
           .range(["#003f5c", "#7a5195", "#ef5675", "#ffa600"])
 
-        const svg = d3.select("#app")
+        const svg = d3.select("#plot")
           .append("svg")
-          .attr("width", width + margin * 2)
-          .attr("height", height + margin * 2)
+          .attr("width", fullWidth)
+          .attr("height", fullHeight)
           .style("border", "1px solid #000")
           .append("g")
           .attr("transform",
-            "translate(" + margin + "," + margin + ")")
+            "translate(" + margin.left + "," + margin.top + ")")
 
         // Add dots
         const dots = svg.append('g')
@@ -70,30 +77,33 @@
           .style("opacity", 0.5)
 
         // Add brushing
-        svg
+        d3.select("#plot > svg")
           .call(
             d3.brush()
-              .extent([[0, 0], [width, height]])
+              .extent([[0, 0], [fullWidth, fullHeight]])
               .on("start brush", updateChart)
           )
 
         // Function that is triggered when brushing is performed
         function updateChart() {
           extent = d3.event.selection
-          dots.classed("selected", d => isBrushed(extent, x(d[0]), y(d[1])))
+          const selected = dots.filter(d => isBrushed(extent, x(d[0]), y(d[1])))
+          dots.classed("selected", false)
+          selected.classed("selected", true)
+          vue.selectedUser = selected.nodes().map(node => node.__data__)
         }
 
         // A function that return TRUE or FALSE according if a dot is in the selection or not
         function isBrushed(brush_coords, cx, cy) {
-          var x0 = brush_coords[0][0],
-            x1 = brush_coords[1][0],
-            y0 = brush_coords[0][1],
-            y1 = brush_coords[1][1];
+          const x0 = brush_coords[0][0] - margin.left,
+                x1 = brush_coords[1][0] - margin.left,
+                y0 = brush_coords[0][1] - margin.top,
+                y1 = brush_coords[1][1] - margin.top;
           return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;    // This return TRUE or FALSE depending on if the points is in the selected area
         }
 
         // Add legend
-        const legendX = 1050, legendY = 30
+        const legendX = 1080, legendY = 30
         const labels = ['midnight', 'morning', 'afternoon', 'evening']
         labels.forEach((l, idx) => {
           svg.append("circle")
@@ -102,7 +112,7 @@
             .attr("r", 7)
             .style("fill", color(l))
           svg.append("text")
-            .attr("x", legendX + 30)
+            .attr("x", legendX + 20)
             .attr("y", 10 + legendY * idx)
             .text(l)
             .style("fill", "black")

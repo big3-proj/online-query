@@ -71,5 +71,6 @@ def get_plot_of_post(id):
     
 
 def get_plot():
-    users = list(map(lambda x: x[:-5], listdir('./users')))
-    return get_plot_of_users(users[:5000])
+    json_files = list(filter(lambda x: x[-5:] == '.json', listdir('./users')))
+    users_ids = list(map(lambda x: x[:-5], json_files))
+    return get_plot_of_users(users_ids[:50])
