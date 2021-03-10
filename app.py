@@ -19,3 +19,8 @@ def posts():
 @app.route('/post/<id>')
 def post(id):
     return render_template('post.html', post=model.get_post(id), plot=model.get_plot_of_post(id))
+
+
+@app.route('/wordcloud')
+def wordcloud():
+    return render_template('wordcloud.html', plot=model.get_plot_of_words())
