@@ -2,11 +2,13 @@ import pandas as pd
 import itertools
 import numpy as np
 import json
+import re
 from datetime import datetime
 from functools import reduce
 from collections import Counter
 from sklearn.manifold import TSNE
 from os import listdir
+from ckiptagger import WS, POS
 
 
 # load posts
@@ -74,3 +76,32 @@ def get_plot():
     json_files = list(filter(lambda x: x[-5:] == '.json', listdir('./users')))
     users_ids = list(map(lambda x: x[:-5], json_files))
     return get_plot_of_users(users_ids[:50])
+
+
+def get_plot_of_user_word(id):
+    with open(f'users/{id}.json') as f:
+        user = json.load(f)
+    user_wordlist = [p['content'] for p in user['pushes']]
+    # use CPU：
+    ws = WS('ckipdata')
+    pos = POS('ckipdata')
+    ws_list = ws(user_wordlist)
+    pos_list = pos(ws_list)
+    # deallocate memory
+    del ws
+    del pos
+
+    ws_list = list(itertools.chain(*ws_list))
+    pos_list = list(itertools.chain(*pos_list))
+    wp_list = [[ws_list[i], pos_list[i]] for i in range(len(ws_list))]
+    pos_filter = ['T', 'FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']
+    regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
+    wp_list = list(filter(lambda p: bool(re.match(regexes, p[1])), wp_list))
+    ws_list = [wp[0] for wp in wp_list]
+    word_sentence_occurence = [{'word': word, 'size': ws_list.count(word)*10} for word in list(set(ws_list))]
+    return word_sentence_occurence
+    
+
+def get_plot_of_words():
+    users = ['a210510']
+    return [get_plot_of_user_word(u) for u in users]
