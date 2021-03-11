@@ -58,19 +58,21 @@
             .style("font-size", d => size(d.freq))
             .style("fill", "#003f5c")
             .text(d => d.word)
-            .attr("transform", function(d, i) {
-              if(i) x = this.previousElementSibling.getBoundingClientRect().right;
-              if(x+this.getComputedTextLength() > width){
-                x = 0;
-                y = this.previousElementSibling.getBoundingClientRect().bottom;
-              }
-              return "translate(" + x + "," + y + ")";
-            })
           .append("tspan")
             .style("font-size", d => size(d.freq)/3*2)
             .style("fill", "#bc5090")
             .text(d => d.freq)
             .attr("dy", "-0.6em");
+          svg.selectAll("text")
+            .attr("transform", function(d, i) {
+                if(i) x = this.previousElementSibling.getBoundingClientRect().right - margin.left;
+                if(x+this.getComputedTextLength() > width){
+                  x = 0;
+                  y = this.previousElementSibling.getBoundingClientRect().bottom - margin.top;
+                  y += this.getBoundingClientRect().height*0.5
+                }
+                return "translate(" + x + "," + y + ")";
+              })
         },
       },
     });
