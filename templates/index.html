@@ -12,7 +12,7 @@
         <div>selected users: [[ selectedUsers.length ]]</div>
         <div class="overflow-auto h-full">
           <ul>
-            <li v-for="[x, y, label, id] in sortedSelectedUsers" :key="id">[[ id ]]</li>
+            <li v-for="{ id } in sortedSelectedUsers" :key="id">[[ id ]]</li>
           </ul>
         </div>
       </div>
@@ -37,7 +37,7 @@
     },
     computed: {
       sortedSelectedUsers() {
-        return this.selectedUsers.sort((a, b) => a[3].toUpperCase() <= b[3].toUpperCase() ? -1 : 1)
+        return this.selectedUsers.sort((a, b) => a.id.toUpperCase() <= b.id.toUpperCase() ? -1 : 1)
       }
     },
     mounted() {
@@ -47,8 +47,10 @@
       draw() {
         const vue = this
         const data = plot
-        const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
-        const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
+        const coord_x = data.map(d => d.coord[0])
+        const coord_y = data.map(d => d.coord[1])
+        const [minX, maxX] = [Math.min(...coord_x), Math.max(...coord_x)]
+        const [minY, maxY] = [Math.min(...coord_y), Math.max(...coord_y)]
         const margin = { top: 20, right: 20, bottom: 20, left: 20 }
         const fullWidth = this.width
         const width = fullWidth - margin.left - margin.right
@@ -80,10 +82,10 @@
           .data(data)
           .enter()
           .append("circle")
-          .attr("cx", d => x(d[0]))
-          .attr("cy", d => y(d[1]))
+          .attr("cx", d => x(d.coord[0]))
+          .attr("cy", d => y(d.coord[1]))
           .attr("r", 7)
-          .style("fill", d => color(d[2]))
+          .style("fill", d => color(d.label))
           .style("opacity", 0.5)
 
         // Add brushing
@@ -96,13 +98,11 @@
 
         // Function that is triggered when brushing is performed
         function updateChart() {
-          console.time('timer')
           extent = d3.event.selection
-          const selected = dots.filter(d => isBrushed(extent, x(d[0]), y(d[1])))
+          const selected = dots.filter(d => isBrushed(extent, x(d.coord[0]), y(d.coord[1])))
           dots.classed("selected", false)
           selected.classed("selected", true)
           vue.selectedUsers = selected.nodes().map(node => node.__data__)
-          console.timeEnd('timer')
         }
 
         // A function that return TRUE or FALSE according if a dot is in the selection or not
