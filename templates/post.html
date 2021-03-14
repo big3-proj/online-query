@@ -4,7 +4,6 @@
   </head>
   
   <body>
-    <div id="plot"></div>
     <div id="app">
       <h1>[[ post.article_title ]]</h1>
       <ul>
@@ -30,7 +29,6 @@
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script>
     const post = {{ post|tojson }}
-    const plot = {{ plot|tojson }}
 
     var app = new Vue({
       el: '#app',
@@ -38,39 +36,7 @@
       data() {
         return {
           post,
-          plot,
         }
-      },
-
-      mounted() {
-        this.draw()
-      },
-
-      methods: {
-        draw() {
-          const data = this.plot
-          const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
-          const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
-          const size = 50
-          const width = (maxX - minX) * size
-          const height = (maxY - minY) * size
-          const padding = 20
-
-          const svg = d3.select("#plot")
-                      .append("svg")
-                      .attr("width", width + padding*2)
-                      .attr("height", height + padding*2)
-                      .style({
-                        'border':'1px solid #000',
-                      })
-
-          svg.selectAll("circle")
-            .data(data).enter()
-            .append("circle")
-            .attr("cx", d => padding + (d[0] - minX) * size)
-            .attr("cy", d => padding + (d[1] - minY) * size)
-            .attr("r", 1 * size/10)
-        },
       },
     });
   </script>
