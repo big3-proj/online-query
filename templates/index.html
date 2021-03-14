@@ -7,17 +7,14 @@
 
 <body>
   <div id="app">
-    <div class="container mx-auto my-4">
-      <div class="flex flex-row flex-nowrap space-x-8" :style="{ height: height }">
-        <div id="plot"></div>
-        <div class="flex-auto px-1 w-full h-full overflow-hidden border-solid border border-light-blue-500">
-          <div>selected users: [[ selectedUsers.length ]]</div>
-          <hr class="mb-1">
-          <div class="overflow-auto h-full">
-            <ul class="list-disc list-inside">
-              <li v-for="[x, y, label, id] in sortedSelectedUsers" :key="id">[[ id ]]</li>
-            </ul>
-          </div>
+    <div class="flex flex-row flex-nowrap" :style="{ height: height }">
+      <div id="plot"></div>
+      <div class="w-full h-full overflow-hidden px-1 ml-2 border">
+        <div>selected users: [[ selectedUsers.length ]]</div>
+        <div class="overflow-auto h-full">
+          <ul>
+            <li v-for="{ id } in sortedSelectedUsers" :key="id">[[ id ]]</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -41,7 +38,7 @@
     },
     computed: {
       sortedSelectedUsers() {
-        return this.selectedUsers.sort((a, b) => a[3].toUpperCase() <= b[3].toUpperCase() ? -1 : 1)
+        return this.selectedUsers.sort((a, b) => a.id.toUpperCase() <= b.id.toUpperCase() ? -1 : 1)
       }
     },
     mounted() {
@@ -51,8 +48,10 @@
       draw() {
         const vue = this
         const data = plot
-        const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
-        const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
+        const coord_x = data.map(d => d.coord[0])
+        const coord_y = data.map(d => d.coord[1])
+        const [minX, maxX] = [Math.min(...coord_x), Math.max(...coord_x)]
+        const [minY, maxY] = [Math.min(...coord_y), Math.max(...coord_y)]
         const margin = { top: 20, right: 20, bottom: 20, left: 20 }
         const fullWidth = this.width
         const width = fullWidth - margin.left - margin.right
@@ -84,10 +83,10 @@
           .data(data)
           .enter()
           .append("circle")
-          .attr("cx", d => x(d[0]))
-          .attr("cy", d => y(d[1]))
+          .attr("cx", d => x(d.coord[0]))
+          .attr("cy", d => y(d.coord[1]))
           .attr("r", 7)
-          .style("fill", d => color(d[2]))
+          .style("fill", d => color(d.label))
           .style("opacity", 0.5)
 
         // Add brushing
@@ -95,13 +94,13 @@
           .call(
             d3.brush()
               .extent([[0, 0], [fullWidth, fullHeight]])
-              .on("start brush", updateChart)
+              .on("brush", updateChart)
           )
 
         // Function that is triggered when brushing is performed
         function updateChart() {
           extent = d3.event.selection
-          const selected = dots.filter(d => isBrushed(extent, x(d[0]), y(d[1])))
+          const selected = dots.filter(d => isBrushed(extent, x(d.coord[0]), y(d.coord[1])))
           dots.classed("selected", false)
           selected.classed("selected", true)
           vue.selectedUsers = selected.nodes().map(node => node.__data__)
@@ -143,6 +142,36 @@
   opacity: 1 !important;
   stroke: black;
   stroke-width: 1px;
+}
+.flex {
+  display: flex;
+}
+.flex-row {
+  flex-direction: row;
+}
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+.w-full {
+  width: 100%;
+}
+.h-full {
+  height: 100%;
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.overflow-auto {
+  overflow: auto;
+}
+.px-1 {
+  padding: 0 4px;
+}
+.ml-2 {
+  margin-left: 8px;
+}
+.border {
+  border: 1px solid #c3c3c3;
 }
 </style>
 
