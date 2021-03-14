@@ -2,7 +2,7 @@
   <head>
     <title>Demo</title>
   </head>
-  
+
   <body>
     <div id="plot"></div>
     <div id="app"></div>
@@ -48,7 +48,7 @@
           .append("g")
           .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
-          
+
           const words = svg.append('g')
           .selectAll("text")
           .data(data)

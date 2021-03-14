@@ -2,12 +2,14 @@
   <head>
     <title>Demo</title>
   </head>
-  
+
   <body>
     <div id="app">
       <ul>
         <li v-for="[id, post] in posts" :key="id">
-          <a :href="`/post/${id}`">[[ post.article_title ]]（[[ count(post.messages) ]] 人參與）</a>
+          <a :href="`/post/${id}`"
+            >[[ post.article_title ]]（[[ count(post.messages) ]] 人參與）</a
+          >
         </li>
       </ul>
       <!-- [[ plot ]] -->

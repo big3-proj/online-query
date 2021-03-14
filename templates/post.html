@@ -2,7 +2,7 @@
   <head>
     <title>Demo</title>
   </head>
-  
+
   <body>
     <div id="app">
       <h1>[[ post.article_title ]]</h1>
@@ -11,14 +11,20 @@
         <li>[[ post.board ]]</li>
         <li>[[ post.date ]]</li>
         <li>[[ post.ip ]]</li>
-        <li>推/噓/回：[[ post.message_count.push ]]/[[ post.message_count.boo ]]/[[ post.message_count.neutral ]]</li>
+        <li>
+          推/噓/回：[[ post.message_count.push ]]/[[ post.message_count.boo
+          ]]/[[ post.message_count.neutral ]]
+        </li>
       </ul>
       <p>[[ post.content ]]</p>
       <div
         v-for="({push_tag, push_userid, push_ipdatetime, push_content}, index) in post.messages"
-        style="margin-top: 20px;"
+        style="margin-top: 20px"
       >
-        <p>[[ index ]] 樓 [[ push_tag ]] [[ push_userid ]] [[ '\t' + push_content + '\t' ]] [[ push_ipdatetime ]]</p>
+        <p>
+          [[ index ]] 樓 [[ push_tag ]] [[ push_userid ]] [[ '\t' + push_content
+          + '\t' ]] [[ push_ipdatetime ]]
+        </p>
       </div>
     </div>
   </body>

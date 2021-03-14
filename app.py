@@ -8,7 +8,7 @@ app.url_map.strict_slaskes = False
 
 @app.route('/')
 def root():
-    return render_template('index.html', plot=model.get_plot(cnt=5000))
+    return render_template('index.html', plot=model.get_plot(cnt=50))
 
 
 @app.route('/posts')

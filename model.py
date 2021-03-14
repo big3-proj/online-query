@@ -65,6 +65,7 @@ def get_plot(cnt=None):
     users = list(map(lambda x: x[:-5], json_files))[:cnt]
     return get_tsne_of_users(users)
 
+
 def get_plot_of_words():
     u = 'jma306'
     with open(f'./users/{u}.json') as f:
