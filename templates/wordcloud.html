@@ -30,7 +30,7 @@
 
       methods: {
         draw() {
-          const data = this.plot[0].sort((a, b) => (a.freq > b.freq) ? -1 : 1)
+          const data = this.plot.sort((a, b) => (a.freq > b.freq) ? -1 : 1)
           const [minFreq, maxFreq] = [data[data.length-1].freq, data[0].freq]
           // set the dimensions and margins of the graph
           const margin = { top: 20, right: 20, bottom: 20, left: 20 };
