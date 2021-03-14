@@ -2,13 +2,11 @@ import pandas as pd
 import itertools
 import numpy as np
 import json
-import re
 from datetime import datetime
 from functools import reduce
 from collections import Counter
 from sklearn.manifold import TSNE
 from os import listdir
-from ckiptagger import WS, POS
 
 
 # load posts
@@ -73,36 +71,9 @@ def get_plot():
     users_ids = list(map(lambda x: x[:-5], json_files))
     return get_plot_of_users(users_ids[:50])
 
-
-def get_plot_of_user_word(id):
-    with open(f'users/{id}.json') as f:
-        user = json.load(f)
-    user_wordlist = [p['content'] for p in user['pushes']]
-    
-    # tagger
-    ws = WS('ckipdata')
-    pos = POS('ckipdata')
-    ws_list = ws(user_wordlist)
-    pos_list = pos(ws_list)
-    del ws
-    del pos
-    
-    # flatten and merge
-    ws_list = list(itertools.chain(*ws_list))
-    pos_list = list(itertools.chain(*pos_list))
-    wp_list = [[ws_list[i], pos_list[i]] for i in range(len(ws_list))]
-    
-    # keywords filter
-    pos_filter = ['FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']
-    regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
-    wp_list = list(filter(lambda wp: bool(re.match(regexes, wp[1])), wp_list))
-    # remove URL
-    ws_list = [wp[0] for wp in wp_list if not any(u in wp[0] for u in ['http', 'com/', 'imgur', 'jpg'])]
-    
-    word_sentence_occurence = [{'word': word, 'freq': ws_list.count(word)} for word in list(set(ws_list))]
-    return word_sentence_occurence
-    
-
 def get_plot_of_words():
-    users = ['jma306']
-    return [get_plot_of_user_word(u) for u in users]
+    u = 'jma306'
+    with open(f'./users/{u}.json') as f:
+        user = json.load(f)
+    data = [{'word': k, 'freq': v} for k, v in user['words_freq'][0].items()]
+    return data
