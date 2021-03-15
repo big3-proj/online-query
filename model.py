@@ -27,7 +27,7 @@ def get_user_pushes_hour(user):
         user = json.load(f)
     pushes = user['pushes']
     # minute in datetime is irrelevant, same hour pushes in a day is viewed as one activity
-    pushes_datetime = set([push['datetime'][:-3] for push in pushes])
+    pushes_datetime = set([push['datetime'].split(':')[0] for push in pushes])
     pushes_hours = filter(None, map(
             lambda dt: None if len(dt.split(' ')) < 2 else int(dt.split(' ')[1]),
             pushes_datetime
@@ -43,7 +43,7 @@ def get_activity_label(activity):
     return label[section.index(max(section))]
 
 
-def get_plot_of_users(users):
+def get_tsne_of_users(users):
     users_activities = [get_user_pushes_hour(u) for u in users]
     users_activity_label = [get_activity_label(activity) for activity in users_activities]
     # t-SNE
@@ -54,22 +54,17 @@ def get_plot_of_users(users):
         plots.append({
             'id': users[i],
             'coord': X_embedded[i],
-            'label': users_activity_label[i]
+            'label': users_activity_label[i],
+            'activities': users_activities[i],
         })
     return plots
-
-
-def get_plot_of_post(id):
-    post = posts[id]
-    commenters = list(map(lambda x: x['push_userid'], post['messages']))
-    users = list(set([post['author_id']] + commenters))
-    return get_plot_of_users(users)
     
 
-def get_plot():
+def get_plot(cnt=None):
     json_files = list(filter(lambda x: x[-5:] == '.json', listdir('./users')))
-    users_ids = list(map(lambda x: x[:-5], json_files))
-    return get_plot_of_users(users_ids[:50])
+    users = list(map(lambda x: x[:-5], json_files))[:cnt]
+    return get_tsne_of_users(users)
+
 
 def get_plot_of_words():
     u = 'jma306'

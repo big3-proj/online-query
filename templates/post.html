@@ -2,9 +2,8 @@
   <head>
     <title>Demo</title>
   </head>
-  
+
   <body>
-    <div id="plot"></div>
     <div id="app">
       <h1>[[ post.article_title ]]</h1>
       <ul>
@@ -12,14 +11,20 @@
         <li>[[ post.board ]]</li>
         <li>[[ post.date ]]</li>
         <li>[[ post.ip ]]</li>
-        <li>推/噓/回：[[ post.message_count.push ]]/[[ post.message_count.boo ]]/[[ post.message_count.neutral ]]</li>
+        <li>
+          推/噓/回：[[ post.message_count.push ]]/[[ post.message_count.boo
+          ]]/[[ post.message_count.neutral ]]
+        </li>
       </ul>
       <p>[[ post.content ]]</p>
       <div
         v-for="({push_tag, push_userid, push_ipdatetime, push_content}, index) in post.messages"
-        style="margin-top: 20px;"
+        style="margin-top: 20px"
       >
-        <p>[[ index ]] 樓 [[ push_tag ]] [[ push_userid ]] [[ '\t' + push_content + '\t' ]] [[ push_ipdatetime ]]</p>
+        <p>
+          [[ index ]] 樓 [[ push_tag ]] [[ push_userid ]] [[ '\t' + push_content
+          + '\t' ]] [[ push_ipdatetime ]]
+        </p>
       </div>
     </div>
   </body>
@@ -30,7 +35,6 @@
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script>
     const post = {{ post|tojson }}
-    const plot = {{ plot|tojson }}
 
     var app = new Vue({
       el: '#app',
@@ -38,39 +42,7 @@
       data() {
         return {
           post,
-          plot,
         }
-      },
-
-      mounted() {
-        this.draw()
-      },
-
-      methods: {
-        draw() {
-          const data = this.plot
-          const [minX, maxX] = data.reduce((a, b) => [Math.min(a[0], b[0]), Math.max(a[1], b[0])], [Infinity, -Infinity])
-          const [minY, maxY] = data.reduce((a, b) => [Math.min(a[0], b[1]), Math.max(a[1], b[1])], [Infinity, -Infinity])
-          const size = 50
-          const width = (maxX - minX) * size
-          const height = (maxY - minY) * size
-          const padding = 20
-
-          const svg = d3.select("#plot")
-                      .append("svg")
-                      .attr("width", width + padding*2)
-                      .attr("height", height + padding*2)
-                      .style({
-                        'border':'1px solid #000',
-                      })
-
-          svg.selectAll("circle")
-            .data(data).enter()
-            .append("circle")
-            .attr("cx", d => padding + (d[0] - minX) * size)
-            .attr("cy", d => padding + (d[1] - minY) * size)
-            .attr("r", 1 * size/10)
-        },
       },
     });
   </script>
