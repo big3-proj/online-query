@@ -35,18 +35,21 @@
       delimiters: ["[[", "]]"],
       data: {
         selectedUsers: [],
+        heatmapSortedUsers: [],
         tsneWidth: 1100,
         tsneHeight: 700,
         heatmapUnitHeight: 50,
+        heatmapSortCounter: new Array(24).fill(0),
       },
       watch: {
         selectedUsers() {
+          this.heatmapSortedUsers = this.sortedSelectedUsers;
           this.drawHeatmap();
         },
       },
       computed: {
         sortedSelectedUsers() {
-          return this.selectedUsers.sort((a, b) =>
+          return this.selectedUsers.slice().sort((a, b) =>
             a.id.toUpperCase() <= b.id.toUpperCase() ? -1 : 1
           );
         },
@@ -155,11 +158,31 @@
               .attr("alignment-baseline", "middle");
           });
         },
+        sortHeatmap(d) {
+          this.heatmapSortCounter[d]++;
+          switch (this.heatmapSortCounter[d]%3) {
+            case 0:
+              // Lexicographic order
+              this.heatmapSortedUsers = this.sortedSelectedUsers.slice()
+              break;
+            case 1:
+              // Asscending order
+              this.heatmapSortedUsers = this.sortedSelectedUsers.slice().sort((a, b) => b.activities[d] - a.activities[d])
+              break;
+            case 2:
+              // Descending order
+              this.heatmapSortedUsers = this.sortedSelectedUsers.slice().sort((a, b) => a.activities[d] - b.activities[d])
+              break;
+            default:
+              break;
+          }
+          this.drawHeatmap()
+        },
         drawHeatmap() {
           d3.selectAll("#heatmap > *").remove();
 
           const vue = this;
-          const data = this.selectedUsers
+          const data = this.heatmapSortedUsers
             .map((u) =>
               u.activities.map((a, i) => ({
                 row: u.id,
@@ -169,7 +192,7 @@
             )
             .reduce((a, b) => [...a, ...b], []);
           const values = data.map((d) => d.value);
-          const margin = { top: 20, right: 20, bottom: 20, left: 100 };
+          const margin = { top: 50, right: 20, bottom: 20, left: 120 };
           const width = this.heatmapWidth;
           const fullWidth = width + margin.left + margin.right;
           const height = this.heatmapUnitHeight * this.selectedUsers.length;
@@ -191,14 +214,16 @@
           svg
             .append("g")
             .style("font-size", 15)
-            .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x).tickSize(0))
+            .attr("id", "axis-x")
+            .call(d3.axisTop(x).tickSize(0))
             .select(".domain")
             .remove();
+          d3.selectAll("#axis-x > g")
+            .on("click", d => vue.sortHeatmap(d))
 
           const y = d3
             .scaleBand()
-            .range([height, 0])
+            .range([0, height])
             .domain(data.map((d) => d.row))
             .padding(0);
           svg
