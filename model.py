@@ -66,7 +66,7 @@ def get_plot(cnt=None):
     return get_tsne_of_users(users)
 
 
-def get_plot_of_words():
+def get_cloud_of_words():
     u = 'jma306'
     with open(f'./users/{u}.json') as f:
         user = json.load(f)
