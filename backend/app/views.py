@@ -1,12 +1,7 @@
 from flask import Flask, render_template, request
 from utils import *
+from app import app
 import model
-
-# Create a Flask APP
-app = Flask(__name__)
-app.url_map.strict_slaskes = False
-
-
 @app.route('/')
 def root():
     return 'hello'
