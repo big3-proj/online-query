@@ -2,9 +2,7 @@
   <div>
     <h1>This is wordcloud page</h1>
     <p v-if="isLoading">loading...</p>
-    <div v-show="!isLoading">
-      <div id="plot" />
-    </div>
+    <div id="plot" />
   </div>
 </template>
 
@@ -58,7 +56,7 @@ export default {
         .append('g')
         .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-      const words = svg
+      svg
         .append('g')
         .selectAll('text')
         .data(data)
@@ -73,12 +71,14 @@ export default {
         .style('fill', '#bc5090')
         .text((d) => d.freq)
         .attr('dy', '-0.6em');
+
       svg.selectAll('text').attr('transform', function (d, i) {
         if (i) x = this.previousElementSibling.getBoundingClientRect().right - margin.left;
         if (x + this.getComputedTextLength() > width) {
           x = 0;
-          y = this.previousElementSibling.getBoundingClientRect().bottom - margin.top;
-          y += this.getBoundingClientRect().height * 0.5;
+          y += this.getBoundingClientRect().height * 1.2;
+          // y = this.previousElementSibling.getBoundingClientRect().bottom;
+          // y += this.getBoundingClientRect().height * 0.5;
         }
         return `translate(${x}, ${y})`;
       });
