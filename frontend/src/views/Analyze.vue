@@ -1,20 +1,28 @@
 <template>
   <div>
-    <h1>This is analyze page</h1>
     <p v-if="isLoading">loading...</p>
-    <div v-show="!isLoading">
-      <div class="flex flex-row flex-nowrap" :style="{ height: tsneHeight }">
-        <div id="plot" />
-        <div class="w-full h-full overflow-hidden px-1 ml-2 border">
-          <div>selected users: {{ selectedUsers.length }}</div>
-          <div class="overflow-auto h-full">
-            <ul>
-              <li v-for="{ id } in sortedSelectedUsers" :key="id">{{ id }}</li>
-            </ul>
-          </div>
+    <div class="flex flex-row flex-nowrap h-700">
+      <div id="tsne-plot" :style="{ width: '1140px', height: '740px' }">
+        <svg :style="{ width: tsneWidth, height: tsneHeight, border: '1px solid #000' }" />
+      </div>
+      <div class="w-full h-full overflow-hidden px-1 ml-2 border">
+        <div>selected users: {{ selectedUsers.length }}</div>
+        <div class="overflow-auto h-full">
+          <ul>
+            <li v-for="{ id } in sortedSelectedUsers" :key="id">{{ id }}</li>
+          </ul>
         </div>
       </div>
-      <div id="heatmap" />
+    </div>
+    <button @click="tab = 0">heatmap</button>
+    <button @click="tab = 1">wordcloud</button>
+    <div v-if="tab === 0" id="heatmap" />
+    <div v-if="tab === 1">
+      <Wordcloud
+        v-for="userId in ['go190214', 'ispy03532003', 'AdagakiAki', 'g10', 'exceedMyself']"
+        :key="userId"
+        :userId="userId"
+      />
     </div>
   </div>
 </template>
@@ -22,10 +30,13 @@
 <script>
 import * as d3 from 'd3';
 import { interpolatePurples } from 'd3-scale-chromatic';
+import Wordcloud from './Wordcloud.vue';
 import agent from '../api/agent';
 
 export default {
+  components: { Wordcloud },
   data: () => ({
+    tab: 1,
     plot: null,
     isLoading: true,
     selectedUsers: [],
@@ -89,11 +100,7 @@ export default {
         .range(['#003f5c', '#7a5195', '#ef5675', '#ffa600']);
 
       const svg = d3
-        .select('#plot')
-        .append('svg')
-        .attr('width', fullWidth)
-        .attr('height', fullHeight)
-        .style('border', '1px solid #000')
+        .select('#tsne-plot > svg')
         .append('g')
         .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
@@ -130,7 +137,7 @@ export default {
       }
 
       // Add brushing
-      d3.select('#plot > svg').call(
+      d3.select('#tsne-plot > svg').call(
         d3
           .brush()
           .extent([
@@ -346,7 +353,7 @@ export default {
 //       .range(['#003f5c', '#7a5195', '#ef5675', '#ffa600']);
 
 //     const svg = d3
-//       .select('#plot')
+//       .select('#tsne-plot')
 //       .append('svg')
 //       .attr('width', fullWidth)
 //       .attr('height', fullHeight)
@@ -390,7 +397,7 @@ export default {
 //     }
 
 //     // Add brushing
-//     d3.select('#plot > svg').call(
+//     d3.select('#tsne-plot > svg').call(
 //       d3
 //         .brush()
 //         .extent([
@@ -555,6 +562,9 @@ export default {
 }
 .h-full {
   height: 100%;
+}
+.h-700 {
+  height: 700px;
 }
 .overflow-hidden {
   overflow: hidden;

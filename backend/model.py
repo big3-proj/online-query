@@ -110,13 +110,12 @@ def get_tsne_of_users(users):
     
 
 def get_plot(cnt=None):
-    users = User.query.all()
+    users = User.query.limit(cnt).all()
     return get_tsne_of_users(users)
 
 
-def get_cloud_of_words():
-    user = 'go190214'
-    wq_list = User.query.filter_by(uid = user).first().word_freq.split(';')
+def get_cloud_of_words(user_id):
+    wq_list = User.query.filter_by(uid = user_id).first().word_freq.split(';')
     wq_pos = [w for w in [wq.split(',') for wq in wq_list]]
 
     pos_filter = ['FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']

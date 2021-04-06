@@ -22,7 +22,6 @@ def post(id):
     return HTTPResponse('here you are.', data=model.get_post(id))
 
 
-@app.route('/wordcloud')
-def wordcloud():
-    return HTTPResponse('here you are.', data=model.get_cloud_of_words())
-    # return render_template('wordcloud.html', plot=model.get_cloud_of_words())
+@app.route('/wordcloud/<user_id>')
+def wordcloud(user_id):
+    return HTTPResponse('here you are.', data=model.get_cloud_of_words(user_id))

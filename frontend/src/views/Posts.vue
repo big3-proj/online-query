@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1>This is posts page</h1>
     <p v-if="isLoading">loading...</p>
     <ul v-else>
       <li v-for="[id, post] in posts" :key="id">

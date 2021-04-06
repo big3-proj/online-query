@@ -5,7 +5,7 @@ import Posts from '../views/Posts.vue';
 import Post from '../views/Post.vue';
 import Analyze from '../views/Analyze.vue';
 import Wordcloud from '../views/Wordcloud.vue';
-import About from '../views/About.vue';
+import Wordclouds from '../views/Wordclouds.vue';
 
 Vue.use(VueRouter);
 
@@ -36,9 +36,9 @@ const routes: Array<RouteConfig> = [
     component: Wordcloud,
   },
   {
-    path: '/about',
-    name: 'About',
-    component: About,
+    path: '/wordclouds',
+    name: 'Wordclouds',
+    component: Wordclouds,
   },
 ];
 
