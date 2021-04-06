@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-show="showed">
     <p v-if="isLoading">loading...</p>
     <div :id="`wordcloud-${userId}`" :style="{ width: width, height: height }">
       <h5>{{ userId }}</h5>
@@ -18,6 +18,10 @@ export default {
       type: String,
       default: 'g10',
     },
+    focus: {
+      type: String,
+      default: '',
+    },
   },
 
   data() {
@@ -26,6 +30,8 @@ export default {
       isLoading: true,
       width: 800,
       height: 400,
+      svg: null,
+      showed: true,
     };
   },
 
@@ -39,6 +45,21 @@ export default {
       .finally(() => {
         this.isLoading = false;
       });
+  },
+
+  watch: {
+    focus() {
+      if (!this.svg) return;
+      let flag = true;
+      this.svg.selectAll('text').style('fill', (d) => {
+        if (this.focus && d.word.includes(this.focus)) {
+          flag = false;
+          return '#ff6361';
+        }
+        return '#003f5c';
+      });
+      this.showed = !flag || !this.focus;
+    },
   },
 
   methods: {
@@ -61,6 +82,7 @@ export default {
         .attr('style', 'outline: thin solid black;')
         .append('g')
         .attr('transform', `translate(${margin.left}, ${margin.top})`);
+      this.svg = svg;
 
       svg
         .selectAll('text')
