@@ -12,7 +12,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import Wordcloud from './Wordcloud.vue';
+import Wordcloud from '../components/Wordcloud.vue';
 
 export default Vue.extend({
   components: { Wordcloud },

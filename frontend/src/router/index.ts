@@ -1,10 +1,8 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
 import Posts from '../views/Posts.vue';
 import Post from '../views/Post.vue';
 import Analyze from '../views/Analyze.vue';
-import Wordcloud from '../views/Wordcloud.vue';
 import Wordclouds from '../views/Wordclouds.vue';
 
 Vue.use(VueRouter);
@@ -12,8 +10,7 @@ Vue.use(VueRouter);
 const routes: Array<RouteConfig> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
+    redirect: '/posts',
   },
   {
     path: '/posts',
@@ -29,11 +26,6 @@ const routes: Array<RouteConfig> = [
     path: '/analyze',
     name: 'Analyze',
     component: Analyze,
-  },
-  {
-    path: '/wordcloud',
-    name: 'Wordcloud',
-    component: Wordcloud,
   },
   {
     path: '/wordclouds',

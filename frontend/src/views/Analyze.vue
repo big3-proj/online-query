@@ -30,7 +30,7 @@
 <script>
 import * as d3 from 'd3';
 import { interpolatePurples } from 'd3-scale-chromatic';
-import Wordcloud from './Wordcloud.vue';
+import Wordcloud from '../components/Wordcloud.vue';
 import agent from '../api/agent';
 
 export default {
