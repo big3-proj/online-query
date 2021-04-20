@@ -11,3 +11,9 @@ export FLASK_APP=app.py
 export FLASK_ENV=development
 flask run
 ```
+
+## parse data to database
+run
+```python
+python dataToDB.py 檔案名稱
+```
