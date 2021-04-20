@@ -1,5 +1,4 @@
-users/
-posts.json
+*.json
 backend/ckipdata/
 
 .DS_Store
