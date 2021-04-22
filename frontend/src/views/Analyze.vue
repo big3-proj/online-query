@@ -32,7 +32,7 @@
     <Heatmap v-if="tab === 0" :users="sortedSelectedUsers" />
     <div v-if="tab === 1" class="container">
       <Wordcloud
-        v-for="userId in sortedSelectedUsers.map(u => u.id)"
+        v-for="userId in userHaveWordcloud"
         :key="userId"
         :userId="userId"
         :focusedContent="searchText"
@@ -48,6 +48,7 @@ import * as d3 from 'd3';
 import Wordcloud from '../components/Wordcloud.vue';
 import Heatmap from '../components/Heatmap.vue';
 import agent from '../api/agent';
+import { userHaveWord } from '../constants/fake';
 
 export default {
   components: { Wordcloud, Heatmap },
@@ -61,6 +62,9 @@ export default {
     tsneHeight: 500,
   }),
   computed: {
+    userHaveWordcloud() {
+      return this.selectedUsers.filter((u) => userHaveWord.includes(u.id)).map((u) => u.id);
+    },
     sortedSelectedUsers() {
       return this.selectedUsers
         .slice()

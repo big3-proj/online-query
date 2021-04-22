@@ -9,7 +9,7 @@ def root():
 
 @app.route('/analyze')
 def analyze():
-    return HTTPResponse('here you are.', data=model.get_plot(cnt=50))
+    return HTTPResponse('here you are.', data=model.get_plot(cnt=None))
 
 
 @app.route('/posts')
