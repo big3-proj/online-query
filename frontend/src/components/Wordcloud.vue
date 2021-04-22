@@ -24,7 +24,7 @@ export default {
     },
     wordSize: {
       type: Array,
-      default: () => [15, 55],
+      default: () => [15, 60],
     },
     width: {
       type: Number,

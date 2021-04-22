@@ -1,6 +1,8 @@
 <template>
   <div>
-    <p v-if="isLoading">loading...</p>
+    <div class="flex justify-center">
+      <p v-if="isLoading">loading...</p>
+    </div>
     <div class="flex flex-row flex-nowrap justify-center" style="height: 500px;">
       <div id="tsne-plot" :style="{ width: tsneWidth+40, height: tsneHeight+40 }">
         <svg :width="tsneWidth" :height="tsneHeight" :style="{ border: '1px solid #000' }" />
@@ -14,21 +16,26 @@
         </div>
       </div>
       <div class="w-full h-full overflow-hidden px-1 ml-2 border">
-        <div>
-          <button @click="tab = 0">heatmap</button>
+        <div class="flex flex-row justify-center">
+          <button @click="tab = 1" class="btn">Wordcloud</button>
+          <button @click="tab = 0" class="btn" style="margin-left: 20px;">Heat map</button>
         </div>
-        <div>
-          <button @click="tab = 1">wordcloud</button>
+        <div class="search" v-if="tab === 1">
+          <label for="query" style="margin-right: 10px;">Filter</label>
+          <input id="query" v-model="searchText" type="text" style="height: 24px; font-size: 20px;">
         </div>
       </div>
+    </div>
+    <div class="flex justify-center">
+      <p>{{ ['Heat map', 'Wordcloud'][tab] }}</p>
     </div>
     <Heatmap v-if="tab === 0" :users="sortedSelectedUsers" />
     <div v-if="tab === 1" class="container">
       <Wordcloud
-        v-for="userId in ['go190214', 'ispy03532003', 'AdagakiAki', 'g10', 'exceedMyself',
-                          'butten986', 'justice0616']"
+        v-for="userId in sortedSelectedUsers.map(u => u.id)"
         :key="userId"
         :userId="userId"
+        :focusedContent="searchText"
         :width="450"
         :height="450"
       />
@@ -47,6 +54,7 @@ export default {
   data: () => ({
     tab: 1,
     plot: null,
+    searchText: '',
     isLoading: true,
     selectedUsers: [],
     tsneWidth: 700,
@@ -88,22 +96,23 @@ export default {
       const width = fullWidth - margin.left - margin.right;
       const fullHeight = this.tsneHeight;
       const height = fullHeight - margin.top - margin.bottom;
+      const dotRadius = 7;
 
-      const x = d3.scaleLinear().domain([minX, maxX]).range([0, width]);
-      const y = d3.scaleLinear().domain([minY, maxY]).range([height, 0]);
+      const x = d3.scaleLinear().domain([minX, maxX]).range([0 + dotRadius, width - dotRadius]);
+      const y = d3.scaleLinear().domain([minY, maxY]).range([height - dotRadius, 0 + dotRadius]);
       const color = d3
         .scaleOrdinal()
         .domain(['midnight', 'morning', 'afternoon', 'evening'])
         .range(['#003f5c', '#7a5195', '#ef5675', '#ffa600']);
 
-      const svg = d3
-        .select('#tsne-plot > svg')
-        .append('g')
+      const svg = d3.select('#tsne-plot > svg');
+
+      const main = svg.append('g')
         .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
       // Add dots
-      const dots = svg
-        .append('g')
+      const dotsGroup = main.append('g');
+      const dots = dotsGroup
         .selectAll('dot')
         .data(data)
         .enter()
@@ -116,10 +125,10 @@ export default {
 
       // A function that return TRUE or FALSE according if a dot is in the selection or not
       function isBrushed(brushCoords, cx, cy) {
-        const x0 = brushCoords[0][0] - margin.left;
-        const x1 = brushCoords[1][0] - margin.left;
-        const y0 = brushCoords[0][1] - margin.top;
-        const y1 = brushCoords[1][1] - margin.top;
+        const x0 = brushCoords[0][0];
+        const x1 = brushCoords[1][0];
+        const y0 = brushCoords[0][1];
+        const y1 = brushCoords[1][1];
         return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;
       }
 
@@ -133,15 +142,22 @@ export default {
         vue.selectedUsers = selected.nodes().map((node) => node.__data__);
       }
 
+      /**
+       * call brushing and zooming on same element will make brush disabled
+       * more precisely, read this https://stackoverflow.com/questions/59753784/d3-js-allow-brushing-and-zooming-on-same-chart
+       */
       // Add brushing
-      d3.select('#tsne-plot > svg').call(
-        d3
-          .brush()
-          .extent([
-            [0, 0],
-            [fullWidth, fullHeight],
-          ])
+      dotsGroup.call(
+        d3.brush()
+          .extent([[0, 0], [width, height]])
           .on('brush', updateChart),
+      );
+      // Add Zooming
+      svg.call(
+        d3.zoom()
+          .on('zoom', () => {
+            main.attr('transform', d3.event.transform);
+          }),
       );
 
       // Add legend
@@ -153,7 +169,7 @@ export default {
           .append('circle')
           .attr('cx', legendX)
           .attr('cy', 10 + legendY * idx)
-          .attr('r', 7)
+          .attr('r', dotRadius)
           .style('fill', color(l));
         svg
           .append('text')
@@ -207,6 +223,22 @@ export default {
 }
 .border {
   border: 1px solid #c3c3c3;
+}
+.btn {
+  width: 100%;
+  margin-top: 5px;
+  background-color: #ddd;
+  border: none;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+}
+.search {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .container {
   display: flex;
