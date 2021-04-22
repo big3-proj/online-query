@@ -1,9 +1,9 @@
 <template>
   <div v-show="showed">
     <p v-if="isLoading">loading...</p>
-    <div :id="`wordcloud-${userId}`" :style="{ width: width, height: height }">
+    <div :id="`wordcloud-${userId}`">
       <h5>{{ userId }}</h5>
-      <svg class="wordcloud" />
+      <svg :width="width" :height="height" />
     </div>
   </div>
 </template>
@@ -18,9 +18,21 @@ export default {
       type: String,
       default: 'g10',
     },
-    focus: {
+    focusedContent: {
       type: String,
       default: '',
+    },
+    wordSize: {
+      type: Array,
+      default: () => [15, 55],
+    },
+    width: {
+      type: Number,
+      default: 600,
+    },
+    height: {
+      type: Number,
+      default: 400,
     },
   },
 
@@ -28,8 +40,6 @@ export default {
     return {
       plot: null,
       isLoading: true,
-      width: 800,
-      height: 400,
       svg: null,
       showed: true,
     };
@@ -48,24 +58,23 @@ export default {
   },
 
   watch: {
-    focus() {
+    focusedContent() {
       if (!this.svg) return;
       let flag = true;
       this.svg.selectAll('text').style('fill', (d) => {
-        if (this.focus && d.word.includes(this.focus)) {
+        if (this.focusedContent && d.word.includes(this.focusedContent)) {
           flag = false;
           return '#ff6361';
         }
         return '#003f5c';
       });
-      this.showed = !flag || !this.focus;
+      this.showed = !flag || !this.focusedContent;
     },
   },
 
   methods: {
     draw() {
       const data = this.plot.sort((a, b) => (a.freq > b.freq ? -1 : 1));
-      const [minFreq, maxFreq] = [data[data.length - 1].freq, data[0].freq];
       // set the dimensions and margins of the graph
       const margin = {
         top: 20,
@@ -74,7 +83,9 @@ export default {
         left: 20,
       };
       const width = this.width - margin.left - margin.right;
-      const size = d3.scaleLinear().domain([minFreq, maxFreq]).range([15, 80]);
+      const size = d3.scaleLinear()
+        .domain(d3.extent(data.map((d) => d.freq)))
+        .range(this.wordSize);
 
       // append the svg object to the body of the page
       const svg = d3
@@ -101,26 +112,19 @@ export default {
 
       let x = 0;
       let y = 0;
+      let prex = 0;
       svg.selectAll('text').attr('transform', function (d, i) {
-        if (i > 0) {
-          x = this.previousElementSibling.getBoundingClientRect().right - margin.left;
-        } else {
-          y += parseInt(this.style.fontSize, 10) - 15;
-        }
-        if (x + this.getComputedTextLength() > width) {
+        x = prex;
+        if (i === 0) {
+          y += parseInt(size(Number(d.freq)), 10) - 15;
+        } else if (x + this.getComputedTextLength() > width) {
           x = 0;
           y += this.getBoundingClientRect().height;
         }
+        prex = x + this.getComputedTextLength() + 5;
         return `translate(${x}, ${y})`;
       });
     },
   },
 };
 </script>
-
-<style scoped>
-.wordcloud {
-  width: 800px;
-  height: 400px;
-}
-</style>

@@ -1,12 +1,15 @@
 <template>
   <div>
     <input v-model="searchText" type="text" style="height: 24px; font-size: 20px;">
-    <Wordcloud
-      v-for="userId in ['go190214', 'ispy03532003', 'AdagakiAki', 'g10', 'exceedMyself']"
-      :key="userId"
-      :userId="userId"
-      :focus="searchText"
-    />
+    <div class="container">
+      <Wordcloud
+        v-for="userId in ['ispy03532003', 'go190214', 'AdagakiAki', 'g10', 'exceedMyself']"
+        :key="userId"
+        :userId="userId"
+        :focusedContent="searchText"
+        :width="400"
+      />
+    </div>
   </div>
 </template>
 
@@ -23,3 +26,11 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style lang="css" scoped>
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+</style>
