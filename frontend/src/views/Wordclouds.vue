@@ -1,13 +1,17 @@
 <template>
   <div>
-    <input v-model="searchText" type="text" style="height: 24px; font-size: 20px;">
+    <div class="search">
+      <label for="query" style="margin-right: 10px;">Filter</label>
+      <input id="query" v-model="searchText" type="text" style="height: 24px; font-size: 20px;">
+    </div>
     <div class="container">
       <Wordcloud
         v-for="userId in ['ispy03532003', 'go190214', 'AdagakiAki', 'g10', 'exceedMyself']"
         :key="userId"
         :userId="userId"
         :focusedContent="searchText"
-        :width="400"
+        :width="450"
+        :height="450"
       />
     </div>
   </div>
@@ -28,6 +32,11 @@ export default Vue.extend({
 </script>
 
 <style lang="css" scoped>
+.search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .container {
   display: flex;
   flex-wrap: wrap;

@@ -2,7 +2,7 @@
   <div v-show="showed">
     <p v-if="isLoading">loading...</p>
     <div :id="`wordcloud-${userId}`">
-      <h5>{{ userId }}</h5>
+      <p>{{ userId }}</p>
       <svg :width="width" :height="height" />
     </div>
   </div>
@@ -112,16 +112,16 @@ export default {
 
       let x = 0;
       let y = 0;
-      let prex = 0;
+      let previousRight = 0;
       svg.selectAll('text').attr('transform', function (d, i) {
-        x = prex;
+        x = previousRight;
         if (i === 0) {
           y += parseInt(size(Number(d.freq)), 10) - 15;
         } else if (x + this.getComputedTextLength() > width) {
           x = 0;
           y += this.getBoundingClientRect().height;
         }
-        prex = x + this.getComputedTextLength() + 5;
+        previousRight = x + this.getComputedTextLength() + 5;
         return `translate(${x}, ${y})`;
       });
     },
