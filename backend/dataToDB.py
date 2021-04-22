@@ -23,11 +23,13 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.String(12), unique=True, nullable=False)
+    ips = db.Column(db.Text)
     posts = db.relationship('Post', backref='user', lazy='dynamic')
     pushes = db.relationship('Push', backref='user', lazy='dynamic')
     words = db.relationship('Word', backref='user', lazy='dynamic')
-    def __init__(self, uid):
+    def __init__(self, uid, ip=''):
         self.uid = uid
+        self.ips = ip
     def __repr__(self):
         return f'{self.uid}'
 
@@ -129,7 +131,12 @@ def parse_data():
             tag_sentence(day, day_user_sentence)
         
         author = User.query.filter_by(uid=author_id).first()
-        if author is None: author = User(author_id)
+        if author is None:
+            author = User(author_id, a['ip'])
+        elif not len(author.ips):
+            author.ips = a['ip']
+        else:
+            author.ips = ';'.join(author.ips.split(';').append(a['ip']))
         author.posts.append(post)
         db.session.add(author)
         db.session.commit()
