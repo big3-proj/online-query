@@ -90,13 +90,17 @@ def get_post(id):
 
 def get_user_pushes_hour(user):
     pushes = Push.query.with_parent(user).all()
+    posts = Post.query.with_parent(user).all()
+    activate_datetime = []
     # minute in datetime is irrelevant, same hour pushes in a day is viewed as one activity
-    pushes_datetime = set([push.datetime for push in pushes])
-    pushes_hours = filter(None, map(
-            lambda dt: dt.strftime('%m'), pushes_datetime
+    if pushes: activate_datetime = set([f'{push.datetime.month},{push.datetime.day},{push.datetime.hour}' for push in pushes])
+    if posts: activate_datetime = set([f'{post.datetime.month},{post.datetime.day},{post.datetime.hour}' for post in posts] + activate_datetime)
+    activate_hours = filter(None, map(
+            lambda dt: int(dt.split(',')[2]),
+            activate_datetime
         )
     )
-    counter = Counter(pushes_hours)
+    counter = Counter(activate_hours)
     return [counter.get(i, 0) for i in range(24)]
 
 
@@ -129,8 +133,7 @@ def get_plot(cnt=None):
 
 
 def get_cloud_of_words(user_id):
-    words = Word.query.with_parent(user_id).all()
-
+    words = Word.query.filter_by(user_id=user_id).all()
     pos_filter = ['FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']
     regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
     words_filtered = list(filter(lambda w: bool(re.match(regexes, w.pos)), words))
