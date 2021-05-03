@@ -99,15 +99,15 @@ def tag_word(content):
     return wp_list
 
 
-def tag_sentence(day_of_year, day_user_sentence):
-    for uid, sentence in tqdm(day_user_sentence.items(), desc=f'Tagging sentence'):
+def tag_sentence(day_of_the_year, users_sentences_in_day):
+    for uid, sentence in tqdm(users_sentences_in_day.items(), desc=f'Tagging sentence'):
         wp_list = tag_word(sentence)
         for w, p in wp_list:
             word = Word.query.filter_by(content=w, user_id=uid).first()
             if word is None: word = Word(w, p)
             word_day_count = list(map(int, word.day_count.split(',')))
             word_day_count[0] += 1 # sum
-            word_day_count[day_of_year] += 1
+            word_day_count[day_of_the_year] += 1
             word.day_count = ','.join(map(str, word_day_count))
             user = User.query.filter_by(uid=uid).first()
             user.words.append(word)
@@ -116,48 +116,55 @@ def tag_sentence(day_of_year, day_user_sentence):
 
 
 def parse_data():
-    day_user_sentence = {}
-    day = -1
-    for a in tqdm(data['articles'][:3], desc=f'Parsing articles'):
-        # remove nickname
-        author_id = a['author'].split()[0]
+    '''
+        parse sentences in post, grouping by day & user
+    '''
+    users_sentences_in_day = {}
+    day_of_the_year = -1
+    for art in tqdm(data['articles'], desc=f'Parsing articles'):
 
-        # add posts to DB
-        post = Post(a['article_id'], a['article_title'], a['content'] , a['date'])
-        if not day_user_sentence:
-            day = int(post.datetime.strftime('%j'))
-        if int(post.datetime.strftime('%j')) != day:
-            day_user_sentence = {}
-            tag_sentence(day, day_user_sentence)
+        # add post to DB
+        post = Post(art['article_id'], art['article_title'], art['content'] , art['date'])
+
+        # day changed, tag accumulated sentences, update day and reset dictionary
+        if day_of_the_year != int(post.art['date'].strftime('%j')):
+            tag_sentence(day_of_the_year, users_sentences_in_day)
+            day_of_the_year = int(post.art['date'].strftime('%j'))
+            users_sentences_in_day = {}
+
+        # remove author nickname, the rest part is user id
+        author_id = art['author'].split()[0]
         
         author = User.query.filter_by(uid=author_id).first()
+        # if user is not exist in DB, create it, otherwise, store the ip address
         if author is None:
-            author = User(author_id, a['ip'])
+            author = User(author_id, art['ip'])
         elif not len(author.ips):
-            author.ips = a['ip']
+            author.ips = art['ip']
         else:
-            author.ips = ';'.join(author.ips.split(';').append(a['ip']))
+            author.ips = ';'.join(author.ips.split(';').append(art['ip']))
         author.posts.append(post)
         db.session.add(author)
         db.session.commit()
-        if author_id not in day_user_sentence: day_user_sentence[author_id] = []
-        day_user_sentence[author_id].append(a['content'])
+        if author_id not in users_sentences_in_day:
+            users_sentences_in_day[author_id] = []
+        users_sentences_in_day[author_id].append(art['content'])
 
         # add pushes to DB
-        f = 0
-        for m in a['messages']:
-            push = Push(m['push_content'], post.datetime.strftime('%Y')+'/'+m['push_ipdatetime'], f)
+        floor = 0
+        for m in art['messages']:
+            push = Push(m['push_content'], post.art['date'].strftime('%Y')+'/'+m['push_ipdatetime'], floor)
             pusher = User.query.filter_by(uid=m['push_userid']).first()
             if pusher is None: pusher = User(m['push_userid'])
             pusher.pushes.append(push)
             post.pushes.append(push)
-            if m['push_userid'] not in day_user_sentence: day_user_sentence[m['push_userid']] = []
-            day_user_sentence[m['push_userid']].append(m['push_content'])
-            f += 1
+            if m['push_userid'] not in users_sentences_in_day: users_sentences_in_day[m['push_userid']] = []
+            users_sentences_in_day[m['push_userid']].append(m['push_content'])
+            floor += 1
         
         db.session.add(post)
         db.session.commit()
-    tag_sentence(day, day_user_sentence)
+    tag_sentence(day_of_the_year, users_sentences_in_day)
 
 if __name__ == '__main__':
     data = pd.read_json(f'{sys.argv[1]}')
