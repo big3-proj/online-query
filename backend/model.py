@@ -140,3 +140,12 @@ def get_cloud_of_words(user_id):
 
     data = [{'word': w.content, 'freq': w.day_count[0]} for w in words_filtered]
     return data
+
+
+def get_ridgeline_of_word(users_id, word):
+    data = {}
+    users_word = Word.query.filter_by(content=word)
+    for user_id in users_id:
+        day_count = users_word.filter_by(user_id=user_id).first().day_count
+        data[user_id] = day_count.split(',')[1:]
+    return data
