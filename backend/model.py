@@ -15,13 +15,13 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.String(12), unique=True, nullable=False)
-    word_freq = db.Column(db.Text)
+    ips = db.Column(db.Text)
     posts = db.relationship('Post', backref='user', lazy='dynamic')
     pushes = db.relationship('Push', backref='user', lazy='dynamic')
-    def __init__(self, uid):
+    words = db.relationship('Word', backref='user', lazy='dynamic')
+    def __init__(self, uid, ip=''):
         self.uid = uid
-        self.word_freq = ''
-
+        self.ips = ip
     def __repr__(self):
         return f'{self.uid}'
 
@@ -32,14 +32,14 @@ class Post(db.Model):
     pid = db.Column(db.String(20), unique=True, nullable=False)
     title = db.Column(db.String(50))
     content = db.Column(db.Text)
-    datetime = db.Column(db.String(25))
+    datetime = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     pushes = db.relationship('Push', backref='post', lazy='dynamic')
-    def __init__(self, pid, title, content, datetime):
+    def __init__(self, pid, title, content, dt):
         self.pid = pid
         self.title = title
         self.content = content
-        self.datetime = datetime
+        self.datetime = datetime.strptime(dt, '%a %b %d %H:%M:%S %Y')
     def __repr__(self):
         return f'{self.pid}'
 
@@ -47,17 +47,32 @@ class Post(db.Model):
 class Push(db.Model):
     __tablename__ = 'pushes'
     id = db.Column(db.Integer, primary_key=True)
-    datetime = db.Column(db.String(25))
+    datetime = db.Column(db.DateTime)
     content = db.Column(db.Text())
     floor = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    def __init__(self, content, datetime, floor):
+    def __init__(self, content, dt, floor):
         self.content = content
-        self.datetime = datetime
+        self.datetime = datetime.strptime(dt, '%Y/%m/%d %H:%M')
         self.floor = floor
     def __repr__(self):
-        return f'{self.content}'
+        return f'{self.post_id}, floor: {self.floor}'
+
+
+class Word(db.Model):
+    __tablename__ = 'words'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.uid'))
+    content = db.Column(db.Text())
+    pos = db.Column(db.String(20))
+    day_count = db.Column(db.Text())
+    def __init__(self, content, pos):
+        self.content = content
+        self.pos = pos
+        self.day_count = ','.join(map(str, [0]*367))
+    def __repr__(self):
+        return f'{self.content}, day_count: {self.day_count}'
 
 
 # load posts
@@ -75,14 +90,17 @@ def get_post(id):
 
 def get_user_pushes_hour(user):
     pushes = Push.query.with_parent(user).all()
+    posts = Post.query.with_parent(user).all()
+    activate_datetime = []
     # minute in datetime is irrelevant, same hour pushes in a day is viewed as one activity
-    pushes_datetime = set([push.datetime.split(':')[0] for push in pushes])
-    pushes_hours = filter(None, map(
-            lambda dt: None if len(dt.split(' ')) < 2 else int(dt.split(' ')[1]),
-            pushes_datetime
+    if pushes: activate_datetime = set([f'{push.datetime.month},{push.datetime.day},{push.datetime.hour}' for push in pushes])
+    if posts: activate_datetime = set([f'{post.datetime.month},{post.datetime.day},{post.datetime.hour}' for post in posts] + activate_datetime)
+    activate_hours = filter(None, map(
+            lambda dt: int(dt.split(',')[2]),
+            activate_datetime
         )
     )
-    counter = Counter(pushes_hours)
+    counter = Counter(activate_hours)
     return [counter.get(i, 0) for i in range(24)]
 
 
@@ -115,12 +133,10 @@ def get_plot(cnt=None):
 
 
 def get_cloud_of_words(user_id):
-    wq_list = User.query.filter_by(uid = user_id).first().word_freq.split(';')
-    wq_pos = [w for w in [wq.split(',') for wq in wq_list]]
-
+    words = Word.query.filter_by(user_id=user_id).all()
     pos_filter = ['FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']
     regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
-    wq = list(filter(lambda wq: bool(re.match(regexes, wq[1])), wq_pos))
+    words_filtered = list(filter(lambda w: bool(re.match(regexes, w.pos)), words))
 
-    data = [{'word': w[0], 'freq': w[2]} for w in wq]
+    data = [{'word': w.content, 'freq': w.day_count[0]} for w in words_filtered]
     return data
