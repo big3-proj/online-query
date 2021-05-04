@@ -94,7 +94,7 @@ def get_user_pushes_hour(user):
     activate_datetime = []
     # minute in datetime is irrelevant, same hour pushes in a day is viewed as one activity
     if pushes: activate_datetime = set([f'{push.datetime.month},{push.datetime.day},{push.datetime.hour}' for push in pushes])
-    if posts: activate_datetime = set([f'{post.datetime.month},{post.datetime.day},{post.datetime.hour}' for post in posts] + activate_datetime)
+    if posts: activate_datetime = set([f'{post.datetime.month},{post.datetime.day},{post.datetime.hour}' for post in posts] + list(activate_datetime))
     activate_hours = filter(None, map(
             lambda dt: int(dt.split(',')[2]),
             activate_datetime
@@ -134,15 +134,25 @@ def get_plot(cnt=None):
 
 def get_cloud_of_words(user_id):
     words = Word.query.filter_by(user_id=user_id).all()
-    pos_filter = ['FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']
+    pos_filter = ['FW', 'V.$', 'Na', 'Nb', 'Nc', 'Neu']
     regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
-    words_filtered = list(filter(lambda w: bool(re.match(regexes, w.pos)), words))
+    words_filtered = list(filter(lambda w: 
+                                    bool(re.match(regexes, w.pos))
+                                    and 'http' not in w.content
+                                    , words))
 
     data = [{'word': w.content, 'freq': w.day_count[0]} for w in words_filtered]
     return data
 
 
 def get_ridgeline_of_word(users_id, word):
+    '''
+    return a dictionary: {
+        [user_id]: a 365-element list where element is an int indicating the 
+                   freq of word in that day
+        ,...
+    }
+    '''
     data = {}
     users_word = Word.query.filter_by(content=word)
     for user_id in users_id:
