@@ -6,18 +6,14 @@ export interface IPush {
 }
 
 export interface IPost {
+  article_id: string,
   article_title: string,
-  author: string,
   author_id: string,
   board: string,
   content: string,
   date: Date,
   ip: string,
-  message_count: {
-    [key: string]: number,
-  },
   messages: IPush[],
-  url: string,
 }
 
 export interface IPosts {
