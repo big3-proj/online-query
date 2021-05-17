@@ -10,6 +10,9 @@ import sys
 from datetime import datetime
 import json
 
+ws = WS('ckipdata')
+pos = POS('ckipdata')
+
 pjdir = os.path.abspath(os.path.dirname(__file__))
 # Create a Flask APP
 app = Flask(__name__)
@@ -85,12 +88,8 @@ class Word(db.Model):
 
 def tag_word(content):
     # tagger
-    ws = WS('ckipdata')
-    pos = POS('ckipdata')
     ws_list = ws(content)
     pos_list = pos(ws_list)
-    del ws
-    del pos
     # flatten and merge
     ws_list = list(itertools.chain(*ws_list))
     pos_list = list(itertools.chain(*pos_list))
@@ -122,27 +121,33 @@ def parse_data():
     users_sentences_in_day = {}
     day_of_the_year = -1
     for art in tqdm(data['articles'], desc=f'Parsing articles'):
-
-        # add post to DB
-        post = Post(art['article_id'], art['article_title'], art['content'] , art['date'])
+        try:    # add post to DB
+            post = Post(art['article_id'], art['article_title'], art['content'] , art['date'])
+        except:
+            continue
 
         # day changed, tag accumulated sentences, update day and reset dictionary
-        if day_of_the_year != int(post.art['date'].strftime('%j')):
+        if day_of_the_year != int(post.datetime.strftime('%j')):
             tag_sentence(day_of_the_year, users_sentences_in_day)
-            day_of_the_year = int(post.art['date'].strftime('%j'))
+            day_of_the_year = int(post.datetime.strftime('%j'))
             users_sentences_in_day = {}
 
         # remove author nickname, the rest part is user id
-        author_id = art['author'].split()[0]
+        try:
+            author_id = art['author'].split()[0]
+        except:
+            author_id = ''
         
         author = User.query.filter_by(uid=author_id).first()
         # if user is not exist in DB, create it, otherwise, store the ip address
         if author is None:
             author = User(author_id, art['ip'])
-        elif not len(author.ips):
-            author.ips = art['ip']
         else:
-            author.ips = ';'.join(author.ips.split(';').append(art['ip']))
+            # add delimeter between multiple ips
+            if author.ips:
+                author.ips += ';'
+            author.ips += art['ip']
+
         author.posts.append(post)
         db.session.add(author)
         db.session.commit()
@@ -153,7 +158,10 @@ def parse_data():
         # add pushes to DB
         floor = 0
         for m in art['messages']:
-            push = Push(m['push_content'], post.art['date'].strftime('%Y')+'/'+m['push_ipdatetime'], floor)
+            try:
+                push = Push(m['push_content'], post.datetime.strftime('%Y')+'/'+m['push_ipdatetime'], floor)
+            except:
+                push = Push(m['push_content'], post.datetime.strftime('%Y/%m/%d %H:%M'), floor)
             pusher = User.query.filter_by(uid=m['push_userid']).first()
             if pusher is None: pusher = User(m['push_userid'])
             pusher.pushes.append(push)
@@ -171,3 +179,6 @@ if __name__ == '__main__':
     db.create_all()
 
     parse_data()
+
+    del ws
+    del pos
