@@ -3,8 +3,8 @@
     <div class="flex justify-center">
       <p v-if="isLoading">loading...</p>
     </div>
-    <div class="flex flex-row flex-nowrap justify-center" style="height: 500px;">
-      <div id="tsne-plot" :style="{ width: tsneWidth+40, height: tsneHeight+40 }">
+    <div class="flex flex-row flex-nowrap justify-center" style="height: 500px">
+      <div id="tsne-plot" :style="{ width: tsneWidth + 40, height: tsneHeight + 40 }">
         <svg :width="tsneWidth" :height="tsneHeight" :style="{ border: '1px solid #000' }" />
       </div>
       <div class="w-full h-full overflow-hidden px-1 ml-2 border">
@@ -18,11 +18,16 @@
       <div class="w-full h-full overflow-hidden px-1 ml-2 border">
         <div class="flex flex-row justify-center">
           <button @click="tab = 1" class="btn">Wordcloud</button>
-          <button @click="tab = 0" class="btn" style="margin-left: 20px;">Heat map</button>
+          <button @click="tab = 0" class="btn" style="margin-left: 20px">Heat map</button>
         </div>
         <div class="search" v-if="tab === 1">
-          <label for="query" style="margin-right: 10px;">Filter</label>
-          <input id="query" v-model="searchText" type="text" style="height: 24px; font-size: 20px;">
+          <label for="query" style="margin-right: 10px">Filter</label>
+          <input
+            id="query"
+            v-model="searchText"
+            type="text"
+            style="height: 24px; font-size: 20px"
+          />
         </div>
       </div>
     </div>
@@ -32,7 +37,7 @@
     <Heatmap v-if="tab === 0" :users="sortedSelectedUsers" />
     <div v-if="tab === 1" class="container">
       <Wordcloud
-        v-for="userId in sortedSelectedUsers.map(u => u.id)"
+        v-for="userId in sortedSelectedUsers.map((u) => u.id)"
         :key="userId"
         :userId="userId"
         :focusedContent="searchText"
@@ -66,10 +71,13 @@ export default {
         .slice()
         .sort((a, b) => (a.id.toUpperCase() <= b.id.toUpperCase() ? -1 : 1));
     },
+    analyzeUsers() {
+      return this.$route.query.users && this.$route.query.users.split(',');
+    },
   },
   mounted() {
     agent
-      .getAnalyze()
+      .getAnalyze(this.analyzeUsers)
       .then((resp) => {
         this.plot = resp.data;
         this.drawTSNE();
@@ -98,8 +106,14 @@ export default {
       const height = fullHeight - margin.top - margin.bottom;
       const dotRadius = 7;
 
-      const x = d3.scaleLinear().domain([minX, maxX]).range([0 + dotRadius, width - dotRadius]);
-      const y = d3.scaleLinear().domain([minY, maxY]).range([height - dotRadius, 0 + dotRadius]);
+      const x = d3
+        .scaleLinear()
+        .domain([minX, maxX])
+        .range([0 + dotRadius, width - dotRadius]);
+      const y = d3
+        .scaleLinear()
+        .domain([minY, maxY])
+        .range([height - dotRadius, 0 + dotRadius]);
       const color = d3
         .scaleOrdinal()
         .domain(['midnight', 'morning', 'afternoon', 'evening'])
@@ -107,8 +121,7 @@ export default {
 
       const svg = d3.select('#tsne-plot > svg');
 
-      const main = svg.append('g')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+      const main = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
 
       // Add dots
       const dotsGroup = main.append('g');
@@ -148,16 +161,19 @@ export default {
        */
       // Add brushing
       dotsGroup.call(
-        d3.brush()
-          .extent([[0, 0], [width, height]])
+        d3
+          .brush()
+          .extent([
+            [0, 0],
+            [width, height],
+          ])
           .on('brush', updateChart),
       );
       // Add Zooming
       svg.call(
-        d3.zoom()
-          .on('zoom', () => {
-            main.attr('transform', d3.event.transform);
-          }),
+        d3.zoom().on('zoom', () => {
+          main.attr('transform', d3.event.transform);
+        }),
       );
 
       // Add legend
