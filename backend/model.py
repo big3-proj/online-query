@@ -42,6 +42,23 @@ class Post(db.Model):
         self.datetime = datetime.strptime(dt, '%a %b %d %H:%M:%S %Y')
     def __repr__(self):
         return f'{self.pid}'
+    def info(self):
+        pushes = [{
+            'push_content': push.content,
+            'push_ipdatetime': push.datetime,
+            'push_tag': '',
+            'push_userid': User.query.get(push.user_id).uid,
+        } for push in self.pushes]
+        return {
+            'article_id': self.pid,
+            'article_title': self.title,
+            'author_id': User.query.get(self.user_id).uid,
+            'board': 'Gossiping',
+            'content': self.content,
+            'date': self.datetime,
+            'ip': 'ip data not found',
+            'messages': pushes,
+        }
 
 
 class Push(db.Model):
@@ -76,8 +93,7 @@ class Word(db.Model):
 
 
 # load posts
-with open('./posts.json') as f:
-    posts = json.load(f)
+posts = { p['article_id']: p for p in map(lambda p: p.info(), Post.query.all()) }
 
 
 def get_posts():
@@ -127,8 +143,11 @@ def get_tsne_of_users(users):
     return plots
     
 
-def get_plot(cnt=None):
-    users = User.query.limit(cnt).all()
+def get_plot(cnt=None, users=None):
+    if not users:
+        users = User.query.limit(cnt).all()
+    else:
+        users = list(filter(None, [User.query.filter_by(uid=user).first() for user in users]))
     return get_tsne_of_users(users)
 
 
