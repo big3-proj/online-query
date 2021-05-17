@@ -58,7 +58,7 @@ export default {
     searchText: '',
     isLoading: true,
     selectedUsers: [],
-    tsneWidth: 700,
+    tsneWidth: 1200,
     tsneHeight: 500,
   }),
   computed: {
@@ -88,8 +88,6 @@ export default {
       const data = this.plot;
       const coordX = data.map((d) => d.coord[0]);
       const coordY = data.map((d) => d.coord[1]);
-      const [minX, maxX] = [Math.min(...coordX), Math.max(...coordX)];
-      const [minY, maxY] = [Math.min(...coordY), Math.max(...coordY)];
       const margin = {
         top: 20,
         right: 20,
@@ -102,8 +100,12 @@ export default {
       const height = fullHeight - margin.top - margin.bottom;
       const dotRadius = 7;
 
-      const x = d3.scaleLinear().domain([minX, maxX]).range([0 + dotRadius, width - dotRadius]);
-      const y = d3.scaleLinear().domain([minY, maxY]).range([height - dotRadius, 0 + dotRadius]);
+      const x = d3.scaleLinear()
+        .domain(d3.extent(coordX))
+        .range([0 + dotRadius, width - dotRadius]);
+      const y = d3.scaleLinear()
+        .domain(d3.extent(coordY))
+        .range([height - dotRadius, 0 + dotRadius]);
       const color = d3
         .scaleOrdinal()
         .domain(['midnight', 'morning', 'afternoon', 'evening'])

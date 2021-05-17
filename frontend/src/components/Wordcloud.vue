@@ -74,7 +74,10 @@ export default {
 
   methods: {
     draw() {
-      const data = this.plot.sort((a, b) => (a.freq > b.freq ? -1 : 1));
+      const data = this.plot.sort((a, b) => (Number(a.freq) > Number(b.freq) ? -1 : 1));
+      if (this.userId === 'end56') {
+        console.dir(data);
+      }
       // set the dimensions and margins of the graph
       const margin = {
         top: 20,

@@ -118,9 +118,10 @@ def get_cloud_of_words(user_id):
     wq_list = User.query.filter_by(uid = user_id).first().word_freq.split(';')
     wq_pos = [w for w in [wq.split(',') for wq in wq_list]]
 
-    pos_filter = ['FW', '^V', 'Na', 'Nb', 'Nc', 'Neu']
+    pos_filter = ['^V', 'Na', 'Nb', 'Nc', 'Neu']
     regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
-    wq = list(filter(lambda wq: bool(re.match(regexes, wq[1])), wq_pos))
+    # print(*wq_pos, sep='\n')
+    wq = list(filter(lambda wq: bool(len(wq) > 1 and re.match(regexes, wq[1])), wq_pos))
 
     data = [{'word': w[0], 'freq': w[2]} for w in wq]
     return data

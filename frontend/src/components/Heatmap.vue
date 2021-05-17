@@ -69,7 +69,7 @@ export default {
           u.activities.map((a, i) => ({
             row: u.id,
             col: i,
-            value: a,
+            value: a * 5 + Math.random() * 2,
           })),
         )
         .reduce((a, b) => [...a, ...b], []);
@@ -121,7 +121,9 @@ export default {
 
       const color = d3
         .scaleSequential(interpolatePurples)
-        .domain([Math.min(...values), Math.max(...values)]);
+        .domain(d3.extent(values));
+
+      console.log(values);
 
       svg
         .selectAll()
