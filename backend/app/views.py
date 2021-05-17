@@ -7,9 +7,14 @@ def root():
     return 'hello'
 
 
-@app.route('/analyze')
+@app.route('/analyze', methods=['POST'])
 def analyze():
-    return HTTPResponse('here you are.', data=model.get_plot(cnt=100))
+    payload = request.get_json()
+    if 'users' in payload:
+        users = payload['users']
+    else:
+        users = None
+    return HTTPResponse('here you are.', data=model.get_plot(cnt=100, users=users))
 
 
 @app.route('/posts')
