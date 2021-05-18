@@ -174,6 +174,10 @@ def get_ridgeline_of_word(users_id, word):
     data = {}
     users_word = Word.query.filter_by(content=word)
     for user_id in users_id:
-        day_count = users_word.filter_by(user_id=user_id).first().day_count
-        data[user_id] = day_count.split(',')[1:]
+        user_word = users_word.filter_by(user_id=user_id).first()
+        if user_word:
+            day_count = user_word.day_count
+            data[user_id] = day_count.split(',')[1:]
+        else:
+            data[user_id] = [0] * 365
     return data

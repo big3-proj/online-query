@@ -60,15 +60,15 @@ export default {
   watch: {
     focusedContent() {
       if (!this.svg) return;
-      let flag = true;
+      let contentNotFound = true;
       this.svg.selectAll('text').style('fill', (d) => {
         if (this.focusedContent && d.word.includes(this.focusedContent)) {
-          flag = false;
+          contentNotFound = false;
           return '#ff6361';
         }
         return '#003f5c';
       });
-      this.showed = !flag || !this.focusedContent;
+      this.showed = !contentNotFound || !this.focusedContent;
     },
   },
 
@@ -83,7 +83,8 @@ export default {
         left: 20,
       };
       const width = this.width - margin.left - margin.right;
-      const size = d3.scaleLinear()
+      const size = d3
+        .scaleLinear()
         .domain(d3.extent(data.map((d) => d.freq)))
         .range(this.wordSize);
 

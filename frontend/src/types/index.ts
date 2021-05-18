@@ -40,3 +40,7 @@ export interface IWordcloud {
   freq: number,
   word: string,
 }
+
+export interface IRidgelineData {
+  [key: string]: number[],
+}
