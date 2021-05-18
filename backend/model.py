@@ -44,15 +44,18 @@ class Post(db.Model):
         return f'{self.pid}'
     def info(self):
         pushes = [{
-            'push_content': push.content,
-            'push_ipdatetime': push.datetime,
-            'push_tag': '',
-            'push_userid': User.query.get(push.user_id).uid,
+            'pushContent': push.content,
+            'pushIpdatetime': push.datetime,
+            'pushTag': '',
+            'pushAuthorId': push.user_id,
+            'pushAuthorUid': User.query.get(push.user_id).uid,
         } for push in self.pushes]
         return {
-            'article_id': self.pid,
-            'article_title': self.title,
-            'author_id': User.query.get(self.user_id).uid,
+            'articleId': self.id,
+            'articlePid': self.pid,
+            'articleTitle': self.title,
+            'authorId': self.user_id,
+            'authorUid': User.query.get(self.user_id).uid,
             'board': 'Gossiping',
             'content': self.content,
             'date': self.datetime,
@@ -92,16 +95,12 @@ class Word(db.Model):
         return f'{self.content}, day_count: {self.day_count}'
 
 
-# load posts
-posts = { p['article_id']: p for p in map(lambda p: p.info(), Post.query.all()) }
-
-
 def get_posts():
-    return posts
+    return list(map(lambda p: p.info(), Post.query.limit(20).all()))
 
 
 def get_post(id):
-    return posts[id]
+    return Post.query.get(id).info()
 
 
 def get_user_pushes_hour(user):
@@ -147,14 +146,13 @@ def get_plot(cnt=None, users=None):
     if not users:
         users = User.query.limit(cnt).all()
     else:
-        users = list(filter(None, [User.query.filter_by(uid=user).first() for user in users]))
-    print(users)
+        users = list(filter(None, [User.query.get(user) for user in users]))
     return get_tsne_of_users(users)
 
 
 def get_cloud_of_words(user_id):
     words = Word.query.filter_by(user_id=user_id).all()
-    pos_filter = ['FW', 'V.$', 'Na', 'Nb', 'Nc', 'Neu']
+    pos_filter = ['V.$', 'Na', 'Nb', 'Nc', 'Neu']
     regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
     words_filtered = list(filter(lambda w: 
                                     bool(re.match(regexes, w.pos))
