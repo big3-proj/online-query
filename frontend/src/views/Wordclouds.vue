@@ -12,6 +12,7 @@
         :focusedContent="searchText"
         :width="450"
         :height="450"
+        @update-focusedContent="updateSearchText"
       />
     </div>
   </div>
@@ -27,6 +28,9 @@ export default Vue.extend({
     return {
       searchText: '',
     };
+  },
+  methods: {
+    updateSearchText(searchText) { this.searchText = searchText; },
   },
 });
 </script>

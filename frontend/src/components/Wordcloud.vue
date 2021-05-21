@@ -12,6 +12,9 @@
 import * as d3 from 'd3';
 import agent from '../api/agent';
 
+const originalColor = '#003f5c';
+const highlightColor = '#ff6361';
+
 export default {
   props: {
     userId: {
@@ -64,9 +67,9 @@ export default {
       this.svg.selectAll('text').style('fill', (d) => {
         if (this.focusedContent && d.word.includes(this.focusedContent)) {
           flag = false;
-          return '#ff6361';
+          return highlightColor;
         }
-        return '#003f5c';
+        return originalColor;
       });
       this.showed = !flag || !this.focusedContent;
     },
@@ -102,7 +105,7 @@ export default {
         .append('text')
         .attr('text-anchor', 'start')
         .style('font-size', (d) => size(d.freq))
-        .style('fill', '#003f5c')
+        .style('fill', originalColor)
         .text((d) => d.word)
         .append('tspan')
         .style('font-size', (d) => (size(d.freq) / 3) * 2)
@@ -124,6 +127,20 @@ export default {
         previousRight = x + this.getComputedTextLength() + 5;
         return `translate(${x}, ${y})`;
       });
+
+      const self = this;
+      function handleMouseOver() { d3.select(this).style('fill', highlightColor); }
+      function handleMouseOut() {
+        d3.select(this).style('fill', (d) => {
+          if (self.focusedContent && d.word.includes(self.focusedContent)) return highlightColor;
+          return originalColor;
+        });
+      }
+
+      svg.selectAll('text')
+        .on('mouseover', handleMouseOver)
+        .on('mouseout', handleMouseOut)
+        .on('click', (d) => { this.$emit('update-focusedContent', d.word); });
     },
   },
 };
