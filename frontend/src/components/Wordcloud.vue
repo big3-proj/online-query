@@ -128,17 +128,18 @@ export default {
         return `translate(${x}, ${y})`;
       });
 
+      const self = this;
       function handleMouseOver() { d3.select(this).style('fill', highlightColor); }
-      function handleMouseOut(keyword) {
+      function handleMouseOut() {
         d3.select(this).style('fill', (d) => {
-          if (!d.word.includes(keyword)) return originalColor;
-          return highlightColor;
+          if (self.focusedContent && d.word.includes(self.focusedContent)) return highlightColor;
+          return originalColor;
         });
       }
 
       svg.selectAll('text')
         .on('mouseover', handleMouseOver)
-        .on('mouseout', () => handleMouseOut(this.focusedContent))
+        .on('mouseout', handleMouseOut)
         .on('click', (d) => { this.$emit('update-focusedContent', d.word); });
     },
   },
