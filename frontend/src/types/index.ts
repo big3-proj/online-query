@@ -7,10 +7,8 @@ export interface IPush {
 }
 
 export interface IPost {
-  articleId: number,
   articlePid: string,
   articleUitle: string,
-  authorId: number,
   authorUid: string,
   board: string,
   content: string,

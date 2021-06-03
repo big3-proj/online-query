@@ -48,11 +48,11 @@ export default class Post extends Vue {
 
   isLoading = true;
 
-  get users(): number[] {
+  get users(): string[] {
     if (!this.post) return [];
     const participants = this.post.messages
-      .map((message) => message.pushAuthorId)
-      .concat(this.post.authorId);
+      .map((message) => message.pushAuthorUid)
+      .concat(this.post.authorUid);
     const distinctParticipants = [...new Set(participants)];
     return distinctParticipants;
   }

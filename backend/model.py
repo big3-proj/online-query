@@ -46,14 +46,11 @@ class Post(db.Model):
             'pushContent': push.content,
             'pushIpdatetime': push.datetime,
             'pushTag': '',
-            'pushAuthorId': push.user_id,
-            'pushAuthorUid': User.query.get(push.user_id).uid,
+            'pushAuthorUid': push.user_id,
         } for push in self.pushes]
         return {
-            # 'articleId': self.id, # TODO
             'articlePid': self.pid,
             'articleTitle': self.title,
-            'authorId': self.user_id,
             'authorUid': self.user_id,
             'board': 'Gossiping',
             'content': self.content,
@@ -150,7 +147,7 @@ def get_plot(cnt=None, users=None):
     if not users:
         users = User.query.limit(cnt).all()
     else:
-        users = list(filter(None, [User.query.get(user_id).first() for user_id in users]))
+        users = list(filter(None, [User.query.get(user_id) for user_id in users]))
     return get_tsne_of_users(users)
 
 

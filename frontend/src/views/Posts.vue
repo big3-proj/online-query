@@ -2,8 +2,8 @@
   <div>
     <p v-if="isLoading">loading...</p>
     <ul v-else>
-      <li v-for="post in posts" :key="post.articleId">
-        <router-link :to="`/post/${post.articleId}`">
+      <li v-for="post in posts" :key="post.articlePid">
+        <router-link :to="`/post/${post.articlePid}`">
           {{ `${post.articleTitle}（${count(post.messages)} 人參與）` }}
         </router-link>
       </li>
