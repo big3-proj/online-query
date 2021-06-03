@@ -105,8 +105,8 @@ def get_post(pid):
 
 
 def get_user_pushes_hour(user):
-    pushes = Push.query.with_parent(user).all()
-    posts = Post.query.with_parent(user).all()
+    pushes = user.pushes.all()
+    posts = user.posts.all()
     activate_datetime = []
     # minute in datetime is irrelevant, same hour pushes in a day is viewed as one activity
     if pushes: activate_datetime = set([f'{push.datetime.month},{push.datetime.day},{push.datetime.hour}' for push in pushes])
