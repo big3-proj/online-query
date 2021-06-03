@@ -1,5 +1,4 @@
 import pandas as pd
-import itertools
 import numpy as np
 import json
 from datetime import datetime
@@ -13,8 +12,7 @@ import re
 db.create_all()
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.String(12), unique=True, nullable=False)
+    uid = db.Column(db.String(12), unique=True, nullable=False, primary_key=True)
     ips = db.Column(db.Text)
     posts = db.relationship('Post', backref='user', lazy='dynamic')
     pushes = db.relationship('Push', backref='user', lazy='dynamic')
@@ -28,18 +26,19 @@ class User(db.Model):
 
 class Post(db.Model):
     __tablename__ = 'posts'
-    id = db.Column(db.Integer, primary_key=True)
-    pid = db.Column(db.String(20), unique=True, nullable=False)
+    pid = db.Column(db.String(20), unique=True, nullable=False, primary_key=True)
     title = db.Column(db.String(50))
     content = db.Column(db.Text)
     datetime = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    ip = db.Column(db.Text)
+    user_id = db.Column(db.String(12), db.ForeignKey('users.uid'))
     pushes = db.relationship('Push', backref='post', lazy='dynamic')
-    def __init__(self, pid, title, content, dt):
+    def __init__(self, pid, title, content, dt, ip=''):
         self.pid = pid
         self.title = title
         self.content = content
         self.datetime = datetime.strptime(dt, '%a %b %d %H:%M:%S %Y')
+        self.ip = ip
     def __repr__(self):
         return f'{self.pid}'
     def info(self):
@@ -51,15 +50,15 @@ class Post(db.Model):
             'pushAuthorUid': User.query.get(push.user_id).uid,
         } for push in self.pushes]
         return {
-            'articleId': self.id,
+            # 'articleId': self.id, # TODO
             'articlePid': self.pid,
             'articleTitle': self.title,
             'authorId': self.user_id,
-            'authorUid': User.query.get(self.user_id).uid,
+            'authorUid': self.user_id,
             'board': 'Gossiping',
             'content': self.content,
             'date': self.datetime,
-            'ip': 'ip data not found',
+            'ip': self.ip,
             'messages': pushes,
         }
 
@@ -67,15 +66,19 @@ class Post(db.Model):
 class Push(db.Model):
     __tablename__ = 'pushes'
     id = db.Column(db.Integer, primary_key=True)
-    datetime = db.Column(db.DateTime)
+    tag = db.Column(db.String(1))
     content = db.Column(db.Text())
+    datetime = db.Column(db.DateTime)
     floor = db.Column(db.Integer)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
-    def __init__(self, content, dt, floor):
+    ip = db.Column(db.Text)
+    user_id = db.Column(db.String(12), db.ForeignKey('users.uid'))
+    post_id = db.Column(db.String(20), db.ForeignKey('posts.pid'))
+    def __init__(self, tag, content, dt, floor, ip=''):
+        self.tag = tag
         self.content = content
         self.datetime = datetime.strptime(dt, '%Y/%m/%d %H:%M')
         self.floor = floor
+        self.ip = ip
     def __repr__(self):
         return f'{self.post_id}, floor: {self.floor}'
 
@@ -83,10 +86,11 @@ class Push(db.Model):
 class Word(db.Model):
     __tablename__ = 'words'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.uid'))
+    user_id = db.Column(db.String(12), db.ForeignKey('users.uid'))
     content = db.Column(db.Text())
     pos = db.Column(db.String(20))
     day_count = db.Column(db.Text())
+    __table_args__ = (db.Index('uid_word', 'user_id', 'content'),)
     def __init__(self, content, pos):
         self.content = content
         self.pos = pos
@@ -99,8 +103,8 @@ def get_posts():
     return list(map(lambda p: p.info(), Post.query.limit(20).all()))
 
 
-def get_post(id):
-    return Post.query.get(id).info()
+def get_post(pid):
+    return Post.query.get(pid).info()
 
 
 def get_user_pushes_hour(user):
@@ -146,12 +150,12 @@ def get_plot(cnt=None, users=None):
     if not users:
         users = User.query.limit(cnt).all()
     else:
-        users = list(filter(None, [User.query.filter_by(uid=user).first() for user in users]))
+        users = list(filter(None, [User.query.get(user_id).first() for user_id in users]))
     return get_tsne_of_users(users)
 
 
 def get_cloud_of_words(user_id):
-    words = Word.query.filter_by(user_id=user_id).all()
+    words = User.query.get(user_id).words.all()
     pos_filter = ['V.$', 'Na', 'Nb', 'Nc', 'Neu']
     regexes = re.compile('|'.join('(?:{0})'.format(r) for r in pos_filter))
     words_filtered = list(filter(lambda w: 
@@ -172,9 +176,8 @@ def get_ridgeline_of_word(users_id, word):
     }
     '''
     data = {}
-    users_word = Word.query.filter_by(content=word)
     for user_id in users_id:
-        user_word = users_word.filter_by(user_id=user_id).first()
+        user_word = Word.query.filter_by(user_id=user_id, content=word).first()
         if user_word:
             day_count = user_word.day_count
             data[user_id] = day_count.split(',')[1:]
