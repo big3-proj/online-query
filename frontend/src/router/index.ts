@@ -4,6 +4,7 @@ import Posts from '../views/Posts.vue';
 import Post from '../views/Post.vue';
 import Analyze from '../views/Analyze.vue';
 import Wordclouds from '../views/Wordclouds.vue';
+import Ridgeline from '../views/Ridgeline.vue';
 
 Vue.use(VueRouter);
 
@@ -31,6 +32,11 @@ const routes: Array<RouteConfig> = [
     path: '/wordclouds',
     name: 'Wordclouds',
     component: Wordclouds,
+  },
+  {
+    path: '/ridgeline',
+    name: 'Ridgeline',
+    component: Ridgeline,
   },
 ];
 

@@ -1,14 +1,17 @@
 export interface IPush {
-  push_content: string,
-  push_ipdatetime: string,
-  push_tag: string,
-  push_userid: string,
+  pushContent: string,
+  pushIpdatetime: string,
+  pushTag: string,
+  pushAuthorId: number,
+  pushAuthorUid: string,
 }
 
 export interface IPost {
-  article_id: string,
-  article_title: string,
-  author_id: string,
+  articleId: number,
+  articlePid: string,
+  articleUitle: string,
+  authorId: number,
+  authorUid: string,
   board: string,
   content: string,
   date: Date,
@@ -36,4 +39,8 @@ export interface IHeatmapPlot {
 export interface IWordcloud {
   freq: number,
   word: string,
+}
+
+export interface IRidgelineData {
+  [key: string]: number[],
 }

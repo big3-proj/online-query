@@ -3,7 +3,8 @@
     <div id="nav">
       <router-link to="/posts">Posts</router-link> |
       <router-link to="/analyze">Analyze</router-link> |
-      <router-link to="/wordclouds">Wordclouds</router-link>
+      <router-link to="/wordclouds">Wordclouds</router-link> |
+      <router-link to="/ridgeline">Ridgeline</router-link>
       <!-- <router-link to="/wordcloud">Wordcloud</router-link> -->
     </div>
     <router-view />

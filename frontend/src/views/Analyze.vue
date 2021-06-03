@@ -7,9 +7,12 @@
       <div id="tsne-plot" :style="{ width: tsneWidth + 40, height: tsneHeight + 40 }">
         <svg :width="tsneWidth" :height="tsneHeight" :style="{ border: '1px solid #000' }" />
       </div>
-      <div class="w-full h-full overflow-hidden px-1 ml-2 border">
+      <div class="w-full h-full overflow-auto px-1 ml-2 border">
         <div>selected users: {{ selectedUsers.length }}</div>
-        <div class="overflow-auto h-full">
+        <div class="jutify-align-center">
+          <textarea class="w-full" :value="selectedUserString" rows="4" />
+        </div>
+        <div>
           <ul>
             <li v-for="{ id } in sortedSelectedUsers" :key="id">{{ id }}</li>
           </ul>
@@ -20,7 +23,7 @@
           <button @click="tab = 1" class="btn">Wordcloud</button>
           <button @click="tab = 0" class="btn" style="margin-left: 20px">Heat map</button>
         </div>
-        <div class="search" v-if="tab === 1">
+        <div class="jutify-align-center" v-if="tab === 1">
           <label for="query" style="margin-right: 10px">Filter</label>
           <input
             id="query"
@@ -29,16 +32,20 @@
             style="height: 24px; font-size: 20px"
           />
         </div>
+        <div class="jutify-align-center" v-if="tab === 1">
+          <button @click="submitRidgeline">Ridgeline</button>
+        </div>
       </div>
     </div>
     <div class="flex justify-center">
       <p>{{ ['Heat map', 'Wordcloud'][tab] }}</p>
     </div>
     <Heatmap v-if="tab === 0" :users="sortedSelectedUsers" />
-    <div v-if="tab === 1" class="container">
+    <div v-show="tab === 1" class="container">
       <Wordcloud
         v-for="userId in sortedSelectedUsers.map((u) => u.id)"
         :key="userId"
+        :ref="userId"
         :userId="userId"
         :focusedContent="searchText"
         :width="450"
@@ -67,6 +74,9 @@ export default {
     tsneHeight: 500,
   }),
   computed: {
+    selectedUserString() {
+      return this.sortedSelectedUsers.map((u) => u.id).join(',');
+    },
     sortedSelectedUsers() {
       return this.selectedUsers
         .slice()
@@ -90,6 +100,8 @@ export default {
   methods: {
     updateSearchText(searchText) { this.searchText = searchText; },
     drawTSNE() {
+      d3.select('#tsne-plot > svg > *').remove();
+
       const vue = this;
       const data = this.plot;
       const coordX = data.map((d) => d.coord[0]);
@@ -199,6 +211,13 @@ export default {
           .attr('alignment-baseline', 'middle');
       });
     },
+    submitRidgeline() {
+      const usersInput = this.sortedSelectedUsers
+        .filter((u) => this.$refs[u.id] && this.$refs[u.id][0].showed)
+        .map((u) => u.id)
+        .join(',');
+      this.$router.push({ path: '/ridgeline', query: { usersInput, word: this.searchText } });
+    },
   },
 };
 </script>
@@ -252,7 +271,7 @@ export default {
   text-align: center;
   font-size: 16px;
 }
-.search {
+.jutify-align-center {
   margin-top: 20px;
   display: flex;
   align-items: center;

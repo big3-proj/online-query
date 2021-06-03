@@ -30,3 +30,11 @@ def post(id):
 @app.route('/wordcloud/<user_id>')
 def wordcloud(user_id):
     return HTTPResponse('here you are.', data=model.get_cloud_of_words(user_id))
+
+
+@app.route('/ridgeline', methods=['POST'])
+def ridgeline():
+    payload = request.get_json()
+    word = payload['word']
+    users = payload['users']
+    return HTTPResponse('here you are.', data=model.get_ridgeline_of_word(users, word))
