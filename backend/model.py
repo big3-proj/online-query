@@ -146,7 +146,7 @@ def get_plot(cnt=None, users=None):
     if not users:
         users = User.query.limit(cnt).all()
     else:
-        users = list(filter(None, [User.query.get(user) for user in users]))
+        users = list(filter(None, [User.query.filter_by(uid=user).first() for user in users]))
     return get_tsne_of_users(users)
 
 

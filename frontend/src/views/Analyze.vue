@@ -50,6 +50,7 @@
         :focusedContent="searchText"
         :width="450"
         :height="450"
+        @update-focusedContent="updateSearchText"
       />
     </div>
   </div>
@@ -97,6 +98,7 @@ export default {
       });
   },
   methods: {
+    updateSearchText(searchText) { this.searchText = searchText; },
     drawTSNE() {
       d3.select('#tsne-plot > svg > *').remove();
 

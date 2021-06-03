@@ -121,8 +121,10 @@ def parse_data():
     users_sentences_in_day = {}
     day_of_the_year = -1
     for art in tqdm(data['articles'], desc=f'Parsing articles'):
-        # add post to DB
-        post = Post(art['article_id'], art['article_title'], art['content'] , art['date'])
+        try:    # add post to DB
+            post = Post(art['article_id'], art['article_title'], art['content'] , art['date'])
+        except:
+            continue
 
         # day changed, tag accumulated sentences, update day and reset dictionary
         if day_of_the_year != int(post.datetime.strftime('%j')):
@@ -131,7 +133,10 @@ def parse_data():
             users_sentences_in_day = {}
 
         # remove author nickname, the rest part is user id
-        author_id = art['author'].split()[0]
+        try:
+            author_id = art['author'].split()[0]
+        except:
+            author_id = ''
         
         author = User.query.filter_by(uid=author_id).first()
         # if user is not exist in DB, create it, otherwise, store the ip address
@@ -153,7 +158,6 @@ def parse_data():
         # add pushes to DB
         floor = 0
         for m in art['messages']:
-            # TODO: 檢查：m['push_ipdatetime']
             try:
                 push = Push(m['push_content'], post.datetime.strftime('%Y')+'/'+m['push_ipdatetime'], floor)
             except:
