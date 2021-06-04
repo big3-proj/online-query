@@ -65,7 +65,7 @@ export default {
       if (!this.svg) return;
       let contentNotFound = true;
       this.svg.selectAll('text').style('fill', (d) => {
-        if (this.focusedContent && d.word.includes(this.focusedContent)) {
+        if (this.focusedContent && d.word === this.focusedContent) {
           contentNotFound = false;
           return '#ff6361';
         }
@@ -133,7 +133,7 @@ export default {
       function handleMouseOver() { d3.select(this).style('fill', highlightColor); }
       function handleMouseOut() {
         d3.select(this).style('fill', (d) => {
-          if (self.focusedContent && d.word.includes(self.focusedContent)) return highlightColor;
+          if (self.focusedContent && d.word === self.focusedContent) return highlightColor;
           return originalColor;
         });
       }
