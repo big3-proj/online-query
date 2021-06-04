@@ -19,7 +19,9 @@ def analyze():
 
 @app.route('/posts')
 def get_posts():
-    return HTTPResponse('here you are.', data=model.get_posts())
+    offset = request.args.get('offset')
+    count = request.args.get('count')
+    return HTTPResponse('here you are.', data=model.get_posts(offset=offset, count=count))
 
 
 @app.route('/post/<id>')

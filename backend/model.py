@@ -96,8 +96,8 @@ class Word(db.Model):
         return f'{self.content}, day_count: {self.day_count}'
 
 
-def get_posts():
-    return list(map(lambda p: p.info(), Post.query.limit(20).all()))
+def get_posts(offset=0, count=20):
+    return list(map(lambda p: p.info(), Post.query.offset(offset).limit(count).all()))
 
 
 def get_post(pid):
