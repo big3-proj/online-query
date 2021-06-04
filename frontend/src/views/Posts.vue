@@ -1,5 +1,6 @@
 <template>
   <div>
+    <p> 使用資料集為 2021/5/18~2021/05/25 約 25000 篇文章 </p>
     <p v-if="isLoading">loading...</p>
     <ul v-else>
       <li v-for="post in posts" :key="post.articlePid">
