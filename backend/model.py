@@ -111,10 +111,9 @@ def get_user_pushes_hour(user):
     # minute in datetime is irrelevant, same hour pushes in a day is viewed as one activity
     if pushes: activate_datetime = set([f'{push.datetime.month},{push.datetime.day},{push.datetime.hour}' for push in pushes])
     if posts: activate_datetime = set([f'{post.datetime.month},{post.datetime.day},{post.datetime.hour}' for post in posts] + list(activate_datetime))
-    activate_hours = filter(None, map(
+    activate_hours = map(
             lambda dt: int(dt.split(',')[2]),
             activate_datetime
-        )
     )
     counter = Counter(activate_hours)
     return [counter.get(i, 0) for i in range(24)]
