@@ -3,7 +3,9 @@
     <p v-if="isLoading">loading...</p>
     <div :id="`wordcloud-${userId}`">
       <p>{{ userId }}</p>
-      <svg :width="width" :height="height" />
+      <div :style="{ width, height: `${height}px`, overflowY: 'auto' }" class="border">
+        <svg :width="width" :height="svgHeight" />
+      </div>
     </div>
   </div>
 </template>
@@ -44,6 +46,7 @@ export default {
       plot: null,
       isLoading: true,
       svg: null,
+      svgHeight: this.height,
       showed: true,
     };
   },
@@ -93,8 +96,7 @@ export default {
 
       // append the svg object to the body of the page
       const svg = d3
-        .select(`#wordcloud-${this.userId} > svg`)
-        .attr('style', 'outline: thin solid black;')
+        .select(`#wordcloud-${this.userId} > div > svg`)
         .append('g')
         .attr('transform', `translate(${margin.left}, ${margin.top})`);
       this.svg = svg;
@@ -117,6 +119,7 @@ export default {
       let x = 0;
       let y = 0;
       let previousRight = 0;
+      const that = this;
       svg.selectAll('text').attr('transform', function (d, i) {
         x = previousRight;
         if (i === 0) {
@@ -124,13 +127,16 @@ export default {
         } else if (x + this.getComputedTextLength() > width) {
           x = 0;
           y += this.getBoundingClientRect().height;
+          that.svgHeight += this.getBoundingClientRect().height;
         }
         previousRight = x + this.getComputedTextLength() + 5;
         return `translate(${x}, ${y})`;
       });
 
       const self = this;
-      function handleMouseOver() { d3.select(this).style('fill', highlightColor); }
+      function handleMouseOver() {
+        d3.select(this).style('fill', highlightColor);
+      }
       function handleMouseOut() {
         d3.select(this).style('fill', (d) => {
           if (self.focusedContent && d.word === self.focusedContent) return highlightColor;
@@ -138,11 +144,20 @@ export default {
         });
       }
 
-      svg.selectAll('text')
+      svg
+        .selectAll('text')
         .on('mouseover', handleMouseOver)
         .on('mouseout', handleMouseOut)
-        .on('click', (d) => { this.$emit('update-focusedContent', d.word); });
+        .on('click', (d) => {
+          this.$emit('update-focusedContent', d.word);
+        });
     },
   },
 };
 </script>
+
+<style scoped>
+.border {
+  border: 1px solid black;
+}
+</style>
