@@ -159,7 +159,7 @@ def get_cloud_of_words(user_id):
                                     and 'http' not in w.content
                                     , words))
 
-    data = [{'word': w.content, 'freq': w.day_count[0]} for w in words_filtered]
+    data = [{'word': w.content, 'freq': int(w.day_count.split(',')[0])} for w in words_filtered]
     return data
 
 
