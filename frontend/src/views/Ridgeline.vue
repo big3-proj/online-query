@@ -18,8 +18,8 @@ import agent from '../api/agent';
 export default {
   data: () => ({
     usersInput:
-      'ae8656tw,asidy,coolman9972,doubleaisno1,iori2968,joker7788996,kodo5566,Ladyink,lhtltyh,maximu',
-    word: '達叔',
+      'bbdog,hipmyhop,kingstongyu,mario2000,P00832129,sm999222,smithereens,takalynn,tomjanyan,winglight,zeldo',
+    word: '疫情',
     isLoading: true,
     data: null,
   }),
@@ -49,6 +49,15 @@ export default {
     drawRidgeline() {
       d3.selectAll('svg > *').remove();
       const data = Object.entries(this.data);
+      const weekStart = 137;
+      const duration = 9;
+      console.log(data);
+      data.forEach((d, i) => {
+        data[i][1] = d[1].map(Number);
+      });
+      data.forEach((d, i) => {
+        data[i][1] = d[1].slice(weekStart, weekStart + duration);
+      });
       const svg = d3.select('svg');
       const width = 500;
       const height = 50;
@@ -58,10 +67,13 @@ export default {
 
       const distr = svg.append('g').attr('transform', `translate(${margin.left}, 0)`);
 
-      const x = d3.scaleLinear().domain([0, 364]).range([0, width]);
+      const x = d3
+        .scaleLinear()
+        .domain([0, duration - 1])
+        .range([0, width]);
       const y = d3
         .scaleLinear()
-        .domain([0, d3.max(data.map((d) => d3.max(d[1])))])
+        .domain([0, d3.max(data.map((d) => d3.max(d[1].map(Number))))])
         .range([height, 0]);
 
       const area = d3
@@ -83,6 +95,7 @@ export default {
           .append('path')
           .attr('transform', `translate(0, ${h})`)
           .attr('fill', 'steelblue')
+          .attr('fill-opacity', 0.5)
           .attr('stroke', 'black')
           .attr('stroke-width', 0.7)
           .attr('d', area(d));
