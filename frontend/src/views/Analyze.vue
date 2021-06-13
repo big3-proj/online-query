@@ -43,7 +43,7 @@
     <Heatmap v-if="tab === 0" :users="sortedSelectedUsers" />
     <div v-show="tab === 1" class="container">
       <Wordcloud
-        v-for="userId in sortedSelectedUsers.map((u) => u.id)"
+        v-for="userId in sortedWordcloudUsers"
         :key="userId"
         :ref="userId"
         :userId="userId"
@@ -51,6 +51,7 @@
         :width="450"
         :height="450"
         @update-focusedContent="updateSearchText"
+        @update-word-count="updateWordCount"
       />
     </div>
   </div>
@@ -72,6 +73,7 @@ export default {
     selectedUsers: [],
     tsneWidth: 700,
     tsneHeight: 500,
+    wordCount: {},
   }),
   computed: {
     selectedUserString() {
@@ -84,6 +86,17 @@ export default {
     },
     analyzeUsers() {
       return this.$route.query.users && this.$route.query.users.split(',');
+    },
+    sortedWordcloudUsers() {
+      const users = this.sortedSelectedUsers.map((u) => u.id);
+      users.sort((a, b) => {
+        const ca = this.wordCount[a];
+        const cb = this.wordCount[b];
+        if (!ca) return 1;
+        if (!cb) return -1;
+        return cb - ca;
+      });
+      return users;
     },
   },
   mounted() {
@@ -98,7 +111,17 @@ export default {
       });
   },
   methods: {
-    updateSearchText(searchText) { this.searchText = searchText; },
+    updateSearchText(searchText) {
+      this.wordCount = {};
+      this.searchText = searchText;
+    },
+    updateWordCount(searchText, userId, freq) {
+      if (this.searchText !== searchText) return;
+      this.wordCount = {
+        ...this.wordCount,
+        [userId]: freq,
+      };
+    },
     drawTSNE() {
       d3.select('#tsne-plot > svg > *').remove();
 

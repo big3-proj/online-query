@@ -70,6 +70,7 @@ export default {
       this.svg.selectAll('text').style('fill', (d) => {
         if (this.focusedContent && d.word === this.focusedContent) {
           contentNotFound = false;
+          this.$emit('update-word-count', this.focusedContent, this.userId, d.freq);
           return '#ff6361';
         }
         return originalColor;
